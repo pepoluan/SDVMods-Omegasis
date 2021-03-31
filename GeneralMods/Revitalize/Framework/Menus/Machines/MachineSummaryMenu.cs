@@ -63,7 +63,7 @@ namespace Revitalize.Framework.Menus.Machines
         {
             get
             {
-                return this.objectSource.GetEnergyManager();
+                return this.objectSource.getEnergyManager();
             }
         }
 

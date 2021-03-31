@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Revitalize.Framework.Crafting;
 using Revitalize.Framework.Objects;
-using Revitalize.Framework.Objects.Furniture;
 using Revitalize.Framework.Utilities;
 using StardewModdingAPI;
 using StardewValley;
@@ -46,13 +45,13 @@ namespace Revitalize.Framework.Hacks
         /// <param name="e"></param>
         public static void Input_CheckForObjectInteraction(object sender, StardewModdingAPI.Events.ButtonPressedEventArgs e)
         {
-            if(e.Button== StardewModdingAPI.SButton.MouseRight)
+            if (e.Button == StardewModdingAPI.SButton.MouseRight)
             {
-                SObject obj= GetItemAtMouseTile();
+                SObject obj = GetItemAtMouseTile();
                 if (obj == null) return;
-                if (ObjectUtilities.IsObjectFurnace(obj) && ObjectUtilities.IsObjectHoldingItem(obj)==false)
+                if (ObjectUtilities.IsObjectFurnace(obj) && ObjectUtilities.IsObjectHoldingItem(obj) == false)
                 {
-                    bool crafted=VanillaRecipeBook.VanillaRecipes.TryToCraftRecipe(obj);
+                    bool crafted = VanillaRecipeBook.VanillaRecipes.TryToCraftRecipe(obj);
                     if (crafted == false) return;
                     obj.initializeLightSource((Vector2)(obj.TileLocation), false);
                     obj.showNextIndex.Value = true;
@@ -84,28 +83,25 @@ namespace Revitalize.Framework.Hacks
         /// </summary>
         public static void AfterLoad_RestoreTrackedMachines()
         {
-            foreach(GameLocation loc in LocationUtilities.GetAllLocations())
+            foreach (GameLocation loc in LocationUtilities.GetAllLocations())
             {
-                foreach(StardewValley.Object obj in loc.Objects.Values)
+                foreach (StardewValley.Object obj in loc.Objects.Values)
                 {
-                    if( (obj.heldObject.Value is CustomObject))
+                    if ((obj.heldObject.Value is CustomObject))
                     {
                         //Don't want to render for tables since tables have special held object logic.
-                        if (IsSameOrSubclass(typeof(TableTileComponent), obj.GetType()) == true) continue;
+                        if (TrackedMachines.ContainsKey(loc))
+                        {
+                            TrackedMachines[loc].Add(obj);
+                        }
                         else
                         {
-                            if (TrackedMachines.ContainsKey(loc))
-                            {
-                                TrackedMachines[loc].Add(obj);
-                            }
-                            else
-                            {
-                                TrackedMachines.Add(loc, new List<SObject>()
+                            TrackedMachines.Add(loc, new List<SObject>()
                                 {
                                     obj
                                 });
-                            }
                         }
+
                     }
                 }
             }
@@ -121,7 +117,7 @@ namespace Revitalize.Framework.Hacks
             if (TrackedMachines.ContainsKey(Game1.player.currentLocation))
             {
                 List<SObject> removalList = new List<SObject>();
-                foreach(SObject obj in TrackedMachines[Game1.player.currentLocation])
+                foreach (SObject obj in TrackedMachines[Game1.player.currentLocation])
                 {
                     if (obj.heldObject.Value == null)
                     {
@@ -129,18 +125,18 @@ namespace Revitalize.Framework.Hacks
                     }
                     else
                     {
-                        if(obj.heldObject.Value is CustomObject)
+                        if (obj.heldObject.Value is CustomObject)
                         {
                             if (obj.MinutesUntilReady == 0)
                             {
                                 float num = (float)(4.0 * Math.Round(Math.Sin(DateTime.UtcNow.TimeOfDay.TotalMilliseconds / 250.0), 2));
-                                Vector2 pos = new Vector2(obj.TileLocation.X * Game1.tileSize, (obj.TileLocation.Y-1) * Game1.tileSize - 32+num);
+                                Vector2 pos = new Vector2(obj.TileLocation.X * Game1.tileSize, (obj.TileLocation.Y - 1) * Game1.tileSize - 32 + num);
                                 obj.heldObject.Value.draw(e.SpriteBatch, (int)pos.X, (int)pos.Y, 0.25f, 1f);
                             }
                         }
                     }
                 }
-                foreach(SObject obj in removalList)
+                foreach (SObject obj in removalList)
                 {
                     TrackedMachines[Game1.player.currentLocation].Remove(obj);
                 }

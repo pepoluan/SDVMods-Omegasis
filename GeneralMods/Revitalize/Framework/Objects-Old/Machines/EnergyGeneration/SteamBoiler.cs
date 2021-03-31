@@ -5,20 +5,20 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Newtonsoft.Json;
 using PyTK.CustomElementHandler;
-using Revitalize.Framework.Managers;
 using Revitalize.Framework.Objects.InformationFiles;
 using Revitalize.Framework.Utilities;
 using StardewValley;
 
 namespace Revitalize.Framework.Objects.Machines.EnergyGeneration
 {
-    public class SteamEngine:Machine
+    public class SteamBoiler : Machine
     {
 
-        public SteamEngine() { }
+        public SteamBoiler() { }
 
-        public SteamEngine(CustomObjectData PyTKData, BasicItemInformation info, List<ResourceInformation> ProducedResources = null, int EnergyRequiredPer10Minutes = 0, int TimeToProduce = 0, bool UpdatesContainer = false, string CraftingBook = "",Fluid FluidRequiredForOperation = null, int FluidAmountRequiredPerOperation=0) : base(PyTKData, info)
+        public SteamBoiler(CustomObjectData PyTKData, BasicItemInformation info, List<ResourceInformation> ProducedResources = null, int EnergyRequiredPer10Minutes = 0, int TimeToProduce = 0, bool UpdatesContainer = false, string CraftingBook = "") : base(PyTKData, info)
         {
             this.producedResources = ProducedResources ?? new List<ResourceInformation>();
             this.energyRequiredPer10Minutes = EnergyRequiredPer10Minutes;
@@ -27,11 +27,10 @@ namespace Revitalize.Framework.Objects.Machines.EnergyGeneration
             this.MinutesUntilReady = TimeToProduce;
             this.craftingRecipeBook = CraftingBook;
             this.createStatusBubble();
-            this.requiredFluidForOperation = FluidRequiredForOperation;
-            this.amountOfFluidRequiredForOperation = FluidAmountRequiredPerOperation;
+
         }
 
-        public SteamEngine(CustomObjectData PyTKData, BasicItemInformation info, Vector2 TileLocation, List<ResourceInformation> ProducedResources = null, int EnergyRequiredPer10Minutes = 0, int TimeToProduce = 0, bool UpdatesContainer = false, string CraftingBook = "", MultiTiledObject obj = null, Fluid FluidRequiredForOperation = null, int FluidAmountRequiredPerOperation = 0) : base(PyTKData, info, TileLocation)
+        public SteamBoiler(CustomObjectData PyTKData, BasicItemInformation info, Vector2 TileLocation, List<ResourceInformation> ProducedResources = null, int EnergyRequiredPer10Minutes = 0, int TimeToProduce = 0, bool UpdatesContainer = false, string CraftingBook = "", MultiTiledObject obj = null) : base(PyTKData, info, TileLocation)
         {
             this.containerObject = obj;
             this.producedResources = ProducedResources ?? new List<ResourceInformation>();
@@ -41,11 +40,9 @@ namespace Revitalize.Framework.Objects.Machines.EnergyGeneration
             this.MinutesUntilReady = TimeToProduce;
             this.craftingRecipeBook = CraftingBook;
             this.createStatusBubble();
-            this.requiredFluidForOperation = FluidRequiredForOperation;
-            this.amountOfFluidRequiredForOperation = FluidAmountRequiredPerOperation;
         }
 
-        public SteamEngine(CustomObjectData PyTKData, BasicItemInformation info, Vector2 TileLocation, Vector2 offsetKey, List<ResourceInformation> ProducedResources = null, int EnergyRequiredPer10Minutes = 0, int TimeToProduce = 0, bool UpdatesContainer = false, string CraftingBook = "", MultiTiledObject obj = null, Fluid FluidRequiredForOperation = null, int FluidAmountRequiredPerOperation = 0) : base(PyTKData, info, TileLocation)
+        public SteamBoiler(CustomObjectData PyTKData, BasicItemInformation info, Vector2 TileLocation, Vector2 offsetKey, List<ResourceInformation> ProducedResources = null, int EnergyRequiredPer10Minutes = 0, int TimeToProduce = 0, bool UpdatesContainer = false, string CraftingBook = "", MultiTiledObject obj = null) : base(PyTKData, info, TileLocation)
         {
             this.offsetKey = offsetKey;
             this.containerObject = obj;
@@ -56,8 +53,6 @@ namespace Revitalize.Framework.Objects.Machines.EnergyGeneration
             this.MinutesUntilReady = TimeToProduce;
             this.craftingRecipeBook = CraftingBook;
             this.createStatusBubble();
-            this.requiredFluidForOperation = FluidRequiredForOperation;
-            this.amountOfFluidRequiredForOperation = FluidAmountRequiredPerOperation;
         }
 
         public override void updateWhenCurrentLocation(GameTime time, GameLocation environment)
@@ -72,7 +67,6 @@ namespace Revitalize.Framework.Objects.Machines.EnergyGeneration
         {
             this.updateInfo();
 
-            /*
             if (this.containerObject.MinutesUntilReady > 0)
             {
                 this.animationManager.playAnimation("Working");
@@ -81,32 +75,22 @@ namespace Revitalize.Framework.Objects.Machines.EnergyGeneration
             {
                 this.animationManager.playDefaultAnimation();
             }
-            */
-            this.pullFluidFromNetworkOutputs(ModCore.ObjectManager.resources.getFluid("Steam"));
+            this.pullFluidFromNetworkOutputs(ModCore.ObjectManager.resources.getFluid("Water"));
 
             if (this.updatesContainerObjectForProduction)
             {
                 int remaining = minutes;
-                while (remaining > 0)
+                if (this.containerObject.MinutesUntilReady <= 0)
                 {
-                    if (this.GetEnergyManager().canReceieveEnergy == false) return false;
+                    this.searchInventoryForBurnableObjects();
+                }
+                while (remaining > 0 && this.containerObject.MinutesUntilReady > 0)
+                {
                     remaining -= 10;
-                    int fluidAmount = this.GetFluidManager().getAmountOfFluidInInputTanks(this.requiredFluidForOperation);
-                    if (this.GetFluidManager().doTheInputTanksHaveEnoughFluid(ModCore.ObjectManager.resources.getFluid(this.requiredFluidForOperation.name), this.amountOfFluidRequiredForOperation))
+                    this.processFluidLogic();
+                    if (this.containerObject.MinutesUntilReady <= 0)
                     {
-                        this.GetFluidManager().consumeFluid(ModCore.ObjectManager.resources.getFluid(this.requiredFluidForOperation.name), this.amountOfFluidRequiredForOperation);
-                        //this.GetFluidManager().produceFluid(ModCore.ObjectManager.resources.getFluid("Steam"), ModCore.Configs.machinesConfig.steamBoilerV1_producedSteamPerOperation);
-                        this.produceEnergy();
-                        this.storeEnergyToNetwork();
-                    }
-                    else if(fluidAmount>0)
-                    {
-                        //Try to always consume fluid if possible.
-                        double ratio = (double)fluidAmount / (double)ModCore.Configs.machinesConfig.steamEngineV1_requiredSteamPerOperation;
-                        int liquidToConsume = fluidAmount;
-                        this.GetFluidManager().consumeFluid(ModCore.ObjectManager.resources.getFluid(this.requiredFluidForOperation.name), liquidToConsume);
-                        this.produceEnergy(ratio);
-                        this.storeEnergyToNetwork();
+                        this.searchInventoryForBurnableObjects();
                     }
                 }
                 return false;
@@ -114,7 +98,7 @@ namespace Revitalize.Framework.Objects.Machines.EnergyGeneration
             else
             {
 
-                if (this.GetEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Produces)
+                if (this.getEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Produces)
                 {
                     this.storeEnergyToNetwork();
                 }
@@ -139,7 +123,7 @@ namespace Revitalize.Framework.Objects.Machines.EnergyGeneration
 
         public override Item getOne()
         {
-            SteamEngine component = new SteamEngine(this.data, this.info.Copy(), this.producedResources, this.energyRequiredPer10Minutes, this.timeToProduce, this.updatesContainerObjectForProduction, this.craftingRecipeBook,this.requiredFluidForOperation,this.amountOfFluidRequiredForOperation);
+            SteamBoiler component = new SteamBoiler(this.data, this.info.Copy(), this.producedResources, this.energyRequiredPer10Minutes, this.timeToProduce, this.updatesContainerObjectForProduction, this.craftingRecipeBook);
             //component.containerObject = this.containerObject;
             //component.offsetKey = this.offsetKey;
             return component;
@@ -150,7 +134,7 @@ namespace Revitalize.Framework.Objects.Machines.EnergyGeneration
         {
             Vector2 offsetKey = new Vector2(Convert.ToInt32(additionalSaveData["offsetKeyX"]), Convert.ToInt32(additionalSaveData["offsetKeyY"]));
             string GUID = additionalSaveData["GUID"];
-            SteamEngine self = Revitalize.ModCore.Serializer.DeserializeGUID<SteamEngine>(additionalSaveData["GUID"]);
+            SteamBoiler self = Revitalize.ModCore.Serializer.DeserializeGUID<SteamBoiler>(additionalSaveData["GUID"]);
             if (ModCore.IsNullOrDefault<Machine>(self)) return null;
             try
             {
@@ -242,17 +226,17 @@ namespace Revitalize.Framework.Objects.Machines.EnergyGeneration
 
         public override void produceEnergy()
         {
-            
+            /*
             if (this.GetEnergyManager().canReceieveEnergy)
             {
                 this.GetEnergyManager().produceEnergy(this.energyRequiredPer10Minutes);
+                this.containerObject.MinutesUntilReady -= 10;
             }
-            
+            */
         }
 
         public virtual void processFluidLogic()
         {
-            return;
             if (this.GetFluidManager().doTheInputTanksHaveEnoughFluid(ModCore.ObjectManager.resources.getFluid("Water"), ModCore.Configs.machinesConfig.steamBoilerV1_requiredWaterPerOperation))
             {
                 this.GetFluidManager().consumeFluid(ModCore.ObjectManager.resources.getFluid("Water"), ModCore.Configs.machinesConfig.steamBoilerV1_requiredWaterPerOperation);
@@ -289,6 +273,23 @@ namespace Revitalize.Framework.Objects.Machines.EnergyGeneration
             this.containerObject.getAdditionalSaveData();
             return saveData;
 
+        }
+
+        protected virtual void searchInventoryForBurnableObjects()
+        {
+            Item removed = null;
+            foreach (Item I in this.GetInventoryManager().items)
+            {
+                if (ModCore.ObjectManager.resources.burnableObjects.ContainsKey(I.Name))
+                {
+                    this.containerObject.MinutesUntilReady = ModCore.ObjectManager.resources.burnableObjects[I.Name];
+                    removed = I;
+                    break;
+                }
+            }
+            if (removed == null) return;
+            if (removed.Stack == 1) this.GetInventoryManager().items.Remove(removed);
+            else removed.Stack -= 1;
         }
     }
 }

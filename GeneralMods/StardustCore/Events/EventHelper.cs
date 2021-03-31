@@ -70,6 +70,14 @@ namespace StardustCore.Events
             this.eventPreconditions = new List<EventPrecondition>();
         }
 
+        public EventHelper(string EventData)
+        {
+            this.eventData = new StringBuilder();
+            this.eventData.Append(EventData);
+            this.eventPreconditionData = new StringBuilder();
+            this.eventPreconditions = new List<EventPrecondition>();
+        }
+
         public EventHelper(string EventName,int ID, LocationPrecondition Location, TimePrecondition Time, EventDayExclusionPrecondition NotTheseDays, EventStartData StartData)
         {
             this.eventName = EventName;

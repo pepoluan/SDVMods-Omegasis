@@ -85,10 +85,10 @@ namespace Revitalize.Framework.Objects.Machines
                     if (this.ConsumesEnergy)
                     {
                         this.drainEnergyFromNetwork(energySources); //Continually drain from the network.                        
-                        if (this.GetEnergyManager().remainingEnergy < ModCore.Configs.machinesConfig.grinderEnergyConsumption) return false;
+                        if (this.getEnergyManager().remainingEnergy < ModCore.Configs.machinesConfig.grinderEnergyConsumption) return false;
                         else
                         {
-                            this.GetEnergyManager().consumeEnergy(ModCore.Configs.machinesConfig.grinderEnergyConsumption); //Consume the required amount of energy necessary.
+                            this.getEnergyManager().consumeEnergy(ModCore.Configs.machinesConfig.grinderEnergyConsumption); //Consume the required amount of energy necessary.
                         }
                     }
                     else

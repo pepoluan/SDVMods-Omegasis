@@ -76,7 +76,7 @@ namespace Revitalize.Framework.Objects.Machines
                 int remaining = minutes;
                 //ModCore.log("Minutes elapsed: " + remaining);
                 List<MultiTiledObject> energySources = new List<MultiTiledObject>();
-                if (this.ConsumesEnergy || this.GetEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Storage)
+                if (this.ConsumesEnergy || this.getEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Storage)
                 {
                     //ModCore.log("This machine drains energy: " + this.info.name);
                     energySources = this.EnergyGraphSearchSources(); //Only grab the network once.
@@ -102,7 +102,7 @@ namespace Revitalize.Framework.Objects.Machines
             else
             {
 
-                if (this.GetEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Produces)
+                if (this.getEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Produces)
                 {
                     this.storeEnergyToNetwork();
                 }

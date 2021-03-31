@@ -24,7 +24,7 @@ namespace Revitalize.Framework.Utilities
             }
             else if (ID.Equals("Omegasis.Revitalize.Objects.Machines.MiningDrillV1"))
             {
-                return ModCore.ObjectManager.resources.miningDrillResources.Values.ToList();
+                return ModCore.ObjectManager.items.miningDrillResources.Values.ToList();
             }
 
             return new List<ResourceInformation>();
@@ -39,7 +39,7 @@ namespace Revitalize.Framework.Utilities
                 new Objects.InformationFiles.ResourceInformation(new StardewValley.Object((int)Enums.SDVObject.BatteryPack,1),1,1,1,1,1,1,0,0,0,0)
             } },
             {"Omegasis.Revitalize.Objects.Machines.Sandbox",new List<ResourceInformation>(){
-                new Objects.InformationFiles.ResourceInformation(ModCore.ObjectManager.resources.getResource("Sand",1),1,1,1,1,1,1,0,0,0,0)
+                new Objects.InformationFiles.ResourceInformation(ModCore.ObjectManager.items.getResource("Sand",1),1,1,1,1,1,1,0,0,0,0)
             } }
         };
         }

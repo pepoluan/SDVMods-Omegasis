@@ -37,14 +37,11 @@
     <PackageReference Include="Pathoschild.Stardew.ModBuildConfig" Version="3.3.0" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="LiteNetLib">
-      <HintPath>..\..\..\LiteNetLib\LiteNetLib.dll</HintPath>
-    </Reference>
-    <Reference Include="PyTK">
-      <HintPath>$(GamePath)\Mods\PyTK\PyTK.dll</HintPath>
-    </Reference>
     <Reference Include="StardustCore">
       <HintPath>$(GamePath)\Mods\StardustCore\StardustCore.dll</HintPath>
+    </Reference>
+    <Reference Include="SpaceCore">
+      <HintPath>$(GamePath)\Mods\SpaceCore\SpaceCore.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -134,60 +131,8 @@
     <Compile Include="Framework\Minigame\SeasideScrambleMinigame\SSCStatusEffects\StatusEffect.cs" />
     <Compile Include="Framework\Minigame\SeasideScrambleMinigame\SSCStatusEffects\StatusEffectManager.cs" />
     <Compile Include="Framework\Minigame\SeasideScrambleMinigame\SSCTextureUtilities.cs" />
-    <Compile Include="Framework\Objects\CraftingTables\CraftingTableTile.cs" />
     <Compile Include="Framework\Energy\EnergyManager.cs" />
-    <Compile Include="Framework\Objects\Extras\ArcadeCabinetOBJ.cs" />
-    <Compile Include="Framework\Objects\Extras\ArcadeCabinetTile.cs" />
-    <Compile Include="Framework\Objects\BasicItemInformation.cs" />
-    <Compile Include="Framework\Objects\CustomObject.cs" />
-    <Compile Include="Framework\Objects\Extras\TrashCanTile.cs" />
-    <Compile Include="Framework\Objects\Furniture\Bench.cs" />
-    <Compile Include="Framework\Objects\Furniture\ChairMultiTiledObject.cs" />
-    <Compile Include="Framework\Objects\Furniture\ChairTileComponent.cs" />
-    <Compile Include="Framework\Objects\Furniture\FurnitureTileComponent.cs" />
-    <Compile Include="Framework\Objects\Furniture\LampMultiTiledObject.cs" />
-    <Compile Include="Framework\Objects\Furniture\LampTileComponent.cs" />
-    <Compile Include="Framework\Objects\Furniture\RugMultiTiledObject.cs" />
-    <Compile Include="Framework\Objects\Furniture\RugTileComponent.cs" />
-    <Compile Include="Framework\Objects\Furniture\StorageFurnitureOBJ.cs" />
-    <Compile Include="Framework\Objects\Furniture\StorageFurnitureTile.cs" />
-    <Compile Include="Framework\Objects\Furniture\TableMultiTiledObject.cs" />
-    <Compile Include="Framework\Objects\Furniture\TableTileComponent.cs" />
-    <Compile Include="Framework\Objects\InformationFiles\Furniture\ArcadeCabinetInformation.cs" />
-    <Compile Include="Framework\Objects\InformationFiles\Furniture\ChairInformation.cs" />
-    <Compile Include="Framework\Objects\InformationFiles\Furniture\TableInformation.cs" />
-    <Compile Include="Framework\Objects\InformationFiles\ResourceInformation.cs" />
-    <Compile Include="Framework\Objects\Interfaces\IItemInfo.cs" />
-    <Compile Include="Framework\Objects\Items\Resources\Dye.cs" />
-    <Compile Include="Framework\Objects\Items\Resources\Ore.cs" />
-    <Compile Include="Framework\Objects\Items\Tools\AxeExtended.cs" />
-    <Compile Include="Framework\Objects\Items\Tools\Chainsaw.cs" />
-    <Compile Include="Framework\Objects\Items\Tools\HoeExtended.cs" />
-    <Compile Include="Framework\Objects\Items\Tools\MiningDrill.cs" />
-    <Compile Include="Framework\Objects\Items\Tools\PickaxeExtended.cs" />
-    <Compile Include="Framework\Objects\Items\Tools\WateringCanExtended.cs" />
-    <Compile Include="Framework\Objects\Machines\AlloyFurnace.cs" />
-    <Compile Include="Framework\Objects\Machines\ChargingStation.cs" />
-    <Compile Include="Framework\Objects\Machines\EnergyGeneration\SolarPanel.cs" />
-    <Compile Include="Framework\Objects\Machines\EnergyGeneration\SteamBoiler.cs" />
-    <Compile Include="Framework\Objects\Machines\EnergyGeneration\SteamEngine.cs" />
-    <Compile Include="Framework\Objects\Machines\EnergyGeneration\Windmill.cs" />
-    <Compile Include="Framework\Objects\Machines\Grinder.cs" />
-    <Compile Include="Framework\Objects\Machines\Machine.cs" />
-    <Compile Include="Framework\Objects\Machines\Pipe.cs" />
-    <Compile Include="Framework\Objects\Machines\PipeMultiTiledObject.cs" />
-    <Compile Include="Framework\Objects\Machines\WaterPump.cs" />
-    <Compile Include="Framework\Objects\Machines\Wire.cs" />
-    <Compile Include="Framework\Objects\Machines\WireMultiTiledObject.cs" />
-    <Compile Include="Framework\Objects\MultiTiledComponent.cs" />
-    <Compile Include="Framework\Objects\MultiTiledObject.cs" />
-    <Compile Include="Framework\Objects\ObjectManager.cs" />
-    <Compile Include="Framework\Objects\InformationFiles\OreResourceInformation.cs" />
-    <Compile Include="Framework\Objects\ResourceManager.cs" />
-    <Compile Include="Framework\Objects\Resources\OreVeins\OreVeinObj.cs" />
-    <Compile Include="Framework\Objects\Resources\OreVeins\OreVeinTile.cs" />
     <Compile Include="Framework\Player\Managers\MagicManager.cs" />
-    <Compile Include="Framework\Player\Managers\SittingInfo.cs" />
     <Compile Include="Framework\Player\PlayerInfo.cs" />
     <Compile Include="Framework\Utilities\BoundingBoxInfo.cs" />
     <Compile Include="Framework\Utilities\EnergyUtilities.cs" />
@@ -665,9 +610,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Framework\Networking\" />
-    <Folder Include="Framework\Objects\InformationFiles\Extras\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -110,7 +110,7 @@ namespace Omegasis.HappyBirthday
                 HappyBirthday.ModMonitor.Log("Added gift with id: " + uniqueID);
                 GiftIDS.RegisteredGifts.Add(uniqueID, i);
             }
-            HappyBirthday.ModHelper.Data.WriteJsonFile<List<string>>(Path.Combine("ModAssets", "Gifts", "RegisteredGifts" + ".json"),GiftIDS.RegisteredGifts.Keys.ToList());
+            HappyBirthday.ModHelper.Data.WriteJsonFile<List<string>>(Path.Combine("ModAssets", "Gifts", "RegisteredGifts" + ".json"), GiftIDS.RegisteredGifts.Keys.ToList());
         }
 
         public void loadDefaultBirthdayGifts()
@@ -185,9 +185,9 @@ namespace Omegasis.HappyBirthday
                     NPCBirthdayGifts.Add(Path.GetFileNameWithoutExtension(File), HappyBirthday.ModHelper.Data.ReadJsonFile<List<GiftInformation>>(Path.Combine("ModAssets", "Gifts", Path.GetFileNameWithoutExtension(File) + ".json")));
                     HappyBirthday.ModMonitor.Log("Loaded in gifts for npc: " + Path.GetFileNameWithoutExtension(File));
                 }
-                catch(Exception err)
+                catch (Exception err)
                 {
-                    
+
                 }
             }
         }
@@ -199,8 +199,11 @@ namespace Omegasis.HappyBirthday
             string[] files = Directory.GetFiles(Path.Combine(HappyBirthday.ModHelper.DirectoryPath, "ModAssets", "Gifts", "Spouses"));
             foreach (string File in files)
             {
-                SpouseBirthdayGifts.Add(Path.GetFileNameWithoutExtension(File), HappyBirthday.ModHelper.Data.ReadJsonFile<List<GiftInformation>>(Path.Combine("ModAssets", "Gifts", "Spouses", Path.GetFileNameWithoutExtension(File) + ".json")));
-                HappyBirthday.ModMonitor.Log("Loaded in spouse gifts for npc: " + Path.GetFileNameWithoutExtension(File));
+                if (!SpouseBirthdayGifts.ContainsKey(Path.GetFileNameWithoutExtension(File)))
+                {
+                    SpouseBirthdayGifts.Add(Path.GetFileNameWithoutExtension(File), HappyBirthday.ModHelper.Data.ReadJsonFile<List<GiftInformation>>(Path.Combine("ModAssets", "Gifts", "Spouses", Path.GetFileNameWithoutExtension(File) + ".json")));
+                    HappyBirthday.ModMonitor.Log("Loaded in spouse gifts for npc: " + Path.GetFileNameWithoutExtension(File));
+                }
             }
         }
 
@@ -569,7 +572,7 @@ namespace Omegasis.HappyBirthday
                     new GiftInformation(GiftIDS.SDVObject.BasicFertilizer,0,10,10),
                 });
 
-                foreach(var v in GiftIDS.RegisteredGifts)
+                foreach (var v in GiftIDS.RegisteredGifts)
                 {
                     if (v.Value.Category == -74)
                     {
@@ -647,7 +650,7 @@ namespace Omegasis.HappyBirthday
                     //Linus gives forged goods
                     if (v.Value.Category == -4)
                     {
-                        if (v.Value.salePrice() <= 500 && v.Value.salePrice()>=150)
+                        if (v.Value.salePrice() <= 500 && v.Value.salePrice() >= 150)
                         {
                             NPCBirthdayGifts["Willy"].Add(new GiftInformation(v.Key, 0, 20, 1, 1));
                         }
@@ -666,9 +669,9 @@ namespace Omegasis.HappyBirthday
                 });
             }
 
-            foreach(var v in NPCBirthdayGifts)
+            foreach (var v in NPCBirthdayGifts)
             {
-                HappyBirthday.ModHelper.Data.WriteJsonFile(Path.Combine("ModAssets", "Gifts", Path.GetFileNameWithoutExtension(v.Key) + ".json"),v.Value);
+                HappyBirthday.ModHelper.Data.WriteJsonFile(Path.Combine("ModAssets", "Gifts", Path.GetFileNameWithoutExtension(v.Key) + ".json"), v.Value);
             }
         }
 
@@ -830,7 +833,7 @@ namespace Omegasis.HappyBirthday
 
             foreach (var v in SpouseBirthdayGifts)
             {
-                HappyBirthday.ModHelper.Data.WriteJsonFile(Path.Combine("ModAssets", "Gifts","Spouses" ,Path.GetFileNameWithoutExtension(v.Key) + ".json"), v.Value);
+                HappyBirthday.ModHelper.Data.WriteJsonFile(Path.Combine("ModAssets", "Gifts", "Spouses", Path.GetFileNameWithoutExtension(v.Key) + ".json"), v.Value);
             }
         }
 
@@ -934,7 +937,7 @@ namespace Omegasis.HappyBirthday
                 List<GiftInformation> npcPossibleGifts = NPCBirthdayGifts[name];
                 foreach (GiftInformation info in npcPossibleGifts)
                 {
-                    if (info.minRequiredHearts <= heartLevel && heartLevel<=info.maxRequiredHearts)
+                    if (info.minRequiredHearts <= heartLevel && heartLevel <= info.maxRequiredHearts)
                     {
                         possibleItems.Add(info.getOne());
                     }
@@ -980,7 +983,7 @@ namespace Omegasis.HappyBirthday
             {
                 if (GiftIDS.RegisteredGifts.ContainsKey(HappyBirthday.PlayerBirthdayData.favoriteBirthdayGift))
                 {
-                    GiftInformation info=new GiftInformation(HappyBirthday.PlayerBirthdayData.favoriteBirthdayGift, 0, 1, 1);
+                    GiftInformation info = new GiftInformation(HappyBirthday.PlayerBirthdayData.favoriteBirthdayGift, 0, 1, 1);
                     if (Game1.player.isInventoryFull())
                         Game1.createItemDebris(info.getOne(), Game1.player.getStandingPosition(), Game1.player.getDirection());
                     else
@@ -1000,7 +1003,7 @@ namespace Omegasis.HappyBirthday
                 List<GiftInformation> npcPossibleGifts = SpouseBirthdayGifts[name];
                 foreach (GiftInformation info in npcPossibleGifts)
                 {
-                    if (info.minRequiredHearts <= heartLevel && heartLevel<=info.maxRequiredHearts)
+                    if (info.minRequiredHearts <= heartLevel && heartLevel <= info.maxRequiredHearts)
                     {
                         possibleItems.Add(info.getOne());
                     }

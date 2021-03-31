@@ -94,6 +94,7 @@ namespace Revitalize.Framework.Utilities
             return dimensions;
         }
 
+        /*
         /// <summary>
         /// Gets all open positions for this location for this object.
         /// </summary>
@@ -115,8 +116,8 @@ namespace Revitalize.Framework.Utilities
                     }
                 }
             }
-            return openTiles;
-        }
+            return openTi
+        */
 
         /// <summary>
         /// Checks to see if the farm for the game is the hilltop farm.

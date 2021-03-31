@@ -5,46 +5,105 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Newtonsoft.Json;
 using PyTK.CustomElementHandler;
+using Revitalize.Framework.Energy;
 using Revitalize.Framework.Objects.InformationFiles;
 using Revitalize.Framework.Utilities;
 using StardewValley;
+using StardustCore.Animations;
+using StardustCore.UIUtilities;
 
-namespace Revitalize.Framework.Objects.Machines.EnergyGeneration
+namespace Revitalize.Framework.Objects.Machines
 {
-    public class SolarPanel:Machine
+    public class ChargingStation:Machine
     {
-        public SolarPanel() { }
 
-        public SolarPanel(CustomObjectData PyTKData, BasicItemInformation info, int EnergyRequiredPer10Minutes = 0, int TimeToProduce = 0, bool UpdatesContainer = false) : base(PyTKData, info,null,EnergyRequiredPer10Minutes,TimeToProduce,UpdatesContainer,"")
+        public ChargingStation() { }
+
+        public ChargingStation(CustomObjectData PyTKData, BasicItemInformation info, List<ResourceInformation> ProducedResources = null, int EnergyRequiredPer10Minutes = 0, int TimeToProduce = 0, bool UpdatesContainer = false, string CraftingBook = "") : base(PyTKData, info)
         {
+            this.producedResources = ProducedResources ?? new List<ResourceInformation>();
+            this.energyRequiredPer10Minutes = EnergyRequiredPer10Minutes;
+            this.timeToProduce = TimeToProduce;
+            this.updatesContainerObjectForProduction = UpdatesContainer;
+            this.MinutesUntilReady = TimeToProduce;
+            this.craftingRecipeBook = CraftingBook;
+            this.createStatusBubble();
+
         }
 
-        public SolarPanel(CustomObjectData PyTKData, BasicItemInformation info, Vector2 TileLocation, int EnergyRequiredPer10Minutes = 0, int TimeToProduce = 0, bool UpdatesContainer = false, MultiTiledObject obj = null) : base(PyTKData, info, TileLocation,null,EnergyRequiredPer10Minutes,TimeToProduce,UpdatesContainer,"")
+        public ChargingStation(CustomObjectData PyTKData, BasicItemInformation info, Vector2 TileLocation, List<ResourceInformation> ProducedResources = null, int EnergyRequiredPer10Minutes = 0, int TimeToProduce = 0, bool UpdatesContainer = false, string CraftingBook = "", MultiTiledObject obj = null) : base(PyTKData, info, TileLocation)
         {
-
+            this.containerObject = obj;
+            this.producedResources = ProducedResources ?? new List<ResourceInformation>();
+            this.energyRequiredPer10Minutes = EnergyRequiredPer10Minutes;
+            this.timeToProduce = TimeToProduce;
+            this.updatesContainerObjectForProduction = UpdatesContainer;
+            this.MinutesUntilReady = TimeToProduce;
+            this.craftingRecipeBook = CraftingBook;
+            this.createStatusBubble();
         }
 
-        public SolarPanel(CustomObjectData PyTKData, BasicItemInformation info, Vector2 TileLocation, Vector2 offsetKey, int EnergyRequiredPer10Minutes = 0, int TimeToProduce = 0, bool UpdatesContainer = false, MultiTiledObject obj = null) : base(PyTKData, info, TileLocation,null,EnergyRequiredPer10Minutes,0,UpdatesContainer,"")
+        public ChargingStation(CustomObjectData PyTKData, BasicItemInformation info, Vector2 TileLocation, Vector2 offsetKey, List<ResourceInformation> ProducedResources = null, int EnergyRequiredPer10Minutes = 0, int TimeToProduce = 0, bool UpdatesContainer = false, string CraftingBook = "", MultiTiledObject obj = null) : base(PyTKData, info, TileLocation)
         {
+            this.offsetKey = offsetKey;
+            this.containerObject = obj;
+            this.producedResources = ProducedResources ?? new List<ResourceInformation>();
+            this.energyRequiredPer10Minutes = EnergyRequiredPer10Minutes;
+            this.timeToProduce = TimeToProduce;
+            this.updatesContainerObjectForProduction = UpdatesContainer;
+            this.MinutesUntilReady = TimeToProduce;
+            this.craftingRecipeBook = CraftingBook;
+            this.createStatusBubble();
+        }
 
+        public override void updateWhenCurrentLocation(GameTime time, GameLocation environment)
+        {
+            base.updateWhenCurrentLocation(time, environment);
         }
 
 
-        public override bool rightClicked(Farmer who)
+        public override bool minutesElapsed(int minutes, GameLocation environment)
         {
-            if (this.location == null)
-                this.location = Game1.player.currentLocation;
-            if (Game1.menuUp || Game1.currentMinigame != null) return false;
+            this.updateInfo();
+            if (this.updatesContainerObjectForProduction)
+            {
+                //ModCore.log("Update container object for production!");
+                //this.MinutesUntilReady -= minutes;
+                int remaining = minutes;
+                //ModCore.log("Minutes elapsed: " + remaining);
+                List<MultiTiledObject> energySources = new List<MultiTiledObject>();
+                if (this.ConsumesEnergy || this.getEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Storage)
+                {
+                    //ModCore.log("This machine drains energy: " + this.info.name);
+                    energySources = this.EnergyGraphSearchSources(); //Only grab the network once.
+                }
+                this.drainEnergyFromNetwork(energySources);
+                foreach(Item I in this.GetInventoryManager().items)
+                {
+                    if (I is null) continue;
+                    if (I is IEnergyInterface==false) continue;
+                    IEnergyInterface o = (IEnergyInterface)I;
+                    if (o.GetEnergyManager().canReceieveEnergy)
+                    {
+                        this.getEnergyManager().transferEnergyToAnother(o.GetEnergyManager(), Math.Min(this.getEnergyManager().remainingEnergy, o.GetEnergyManager().capacityRemaining));
+                    }
+                    if (this.getEnergyManager().hasEnergy == false) break;
+                }
 
-            //ModCore.playerInfo.sittingInfo.sit(this, Vector2.Zero);
-            this.createMachineMenu();
-            return true;
+                return false;
+            }
+            else
+            {
+                return false;
+            }
         }
+
 
         public override Item getOne()
         {
-            SolarPanel component = new SolarPanel(this.data, this.info.Copy(), this.TileLocation, this.offsetKey, this.energyRequiredPer10Minutes, this.timeToProduce, this.updatesContainerObjectForProduction);
+            ChargingStation component = new ChargingStation(this.data, this.info.Copy(), this.TileLocation, this.offsetKey, this.producedResources, this.energyRequiredPer10Minutes, this.timeToProduce, this.updatesContainerObjectForProduction, this.craftingRecipeBook, this.containerObject);
             return component;
         }
 
@@ -53,7 +112,7 @@ namespace Revitalize.Framework.Objects.Machines.EnergyGeneration
             //instead of using this.offsetkey.x use get additional save data function and store offset key there
 
             Vector2 offsetKey = new Vector2(Convert.ToInt32(additionalSaveData["offsetKeyX"]), Convert.ToInt32(additionalSaveData["offsetKeyY"]));
-            SolarPanel self = Revitalize.ModCore.Serializer.DeserializeGUID<SolarPanel>(additionalSaveData["GUID"]);
+            ChargingStation self = Revitalize.ModCore.Serializer.DeserializeGUID<ChargingStation>(additionalSaveData["GUID"]);
             if (self == null)
             {
                 return null;
@@ -89,31 +148,6 @@ namespace Revitalize.Framework.Objects.Machines.EnergyGeneration
             Revitalize.ModCore.Serializer.SerializeGUID(this.containerObject.childrenGuids[this.offsetKey].ToString(), this);
             this.containerObject.getAdditionalSaveData();
             return saveData;
-
-        }
-
-
-
-        public override void produceEnergy()
-        {
-            if (this.GetEnergyManager().canReceieveEnergy)
-            {
-                int energy= this.energyRequiredPer10Minutes;
-                if (WeatherUtilities.IsWetWeather())
-                {
-                    energy = (int)(energy * ModCore.Configs.machinesConfig.solarPanelNonSunnyDayEnergyMultiplier);
-                }
-
-                if (Game1.timeOfDay >= Game1.getModeratelyDarkTime())
-                {
-                    energy = (int)(energy * ModCore.Configs.machinesConfig.solarPanelNightEnergyGenerationMultiplier);
-                }
-                if (this.location != null)
-                {
-                    if (this.location.IsOutdoors == false) return;
-                }
-                this.GetEnergyManager().produceEnergy(energy);
-            }
 
         }
 
@@ -155,6 +189,8 @@ namespace Revitalize.Framework.Objects.Machines.EnergyGeneration
                     addedDepth += 1.0f;
                 }
                 this.animationManager.draw(spriteBatch, this.displayTexture, Game1.GlobalToLocal(Game1.viewport, new Vector2((float)(x * Game1.tileSize), y * Game1.tileSize)), new Rectangle?(this.animationManager.currentAnimation.sourceRectangle), this.info.DrawColor * alpha, 0f, Vector2.Zero, (float)Game1.pixelZoom, this.flipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None, Math.Max(0f, (float)((y + addedDepth) * Game1.tileSize) / 10000f) + .00001f);
+                this.drawStatusBubble(spriteBatch, x, y, alpha);
+
                 try
                 {
                     this.animationManager.tickAnimation();
@@ -169,6 +205,7 @@ namespace Revitalize.Framework.Objects.Machines.EnergyGeneration
             // spriteBatch.Draw(Game1.mouseCursors, Game1.GlobalToLocal(Game1.viewport, new Vector2((float)((double)tileLocation.X * (double)Game1.tileSize + (((double)tileLocation.X * 11.0 + (double)tileLocation.Y * 7.0) % 10.0 - 5.0)) + (float)(Game1.tileSize / 2), (float)((double)tileLocation.Y * (double)Game1.tileSize + (((double)tileLocation.Y * 11.0 + (double)tileLocation.X * 7.0) % 10.0 - 5.0)) + (float)(Game1.tileSize / 2))), new Rectangle?(new Rectangle((int)((double)tileLocation.X * 51.0 + (double)tileLocation.Y * 77.0) % 3 * 16, 128 + this.whichForageCrop * 16, 16, 16)), Color.White, 0.0f, new Vector2(8f, 8f), (float)Game1.pixelZoom, SpriteEffects.None, (float)(((double)tileLocation.Y * (double)Game1.tileSize + (double)(Game1.tileSize / 2) + (((double)tileLocation.Y * 11.0 + (double)tileLocation.X * 7.0) % 10.0 - 5.0)) / 10000.0));
 
         }
+
 
     }
 }

@@ -142,8 +142,9 @@ namespace Omegasis.HappyBirthday.Framework
             e.speak(penny, HappyBirthday.Config.translationInfo.getTranslatedString("Event:DatingPennyBirthday_Penny:3")); //penny3
 
             e.moveActorLeft("Penny", 3, EventHelper.FacingDirection.Up, true);
-            e.moveFarmerRight(2, EventHelper.FacingDirection.Up, false);
-            e.moveFarmerUp(3, EventHelper.FacingDirection.Down, false);
+            e.moveFarmerRight(1, EventHelper.FacingDirection.Up, false);
+            e.moveFarmerUp(3, EventHelper.FacingDirection.Up, false);
+            e.moveFarmerRight(1, EventHelper.FacingDirection.Down, false);
             e.moveActorRight("Penny", 5, EventHelper.FacingDirection.Up, true);
             e.moveActorUp("Penny", 1, EventHelper.FacingDirection.Up, true);
             e.speak(pam, HappyBirthday.Config.translationInfo.getTranslatedString("Event:DatingPennyBirthday_Pam:2")); //pam2
@@ -161,7 +162,7 @@ namespace Omegasis.HappyBirthday.Framework
             e.showMessage(HappyBirthday.Config.translationInfo.getTranslatedString("Event:PartyOver"));
 
             e.end();
-
+            
             return e;
         }
 

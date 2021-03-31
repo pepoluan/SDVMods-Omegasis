@@ -432,7 +432,7 @@ namespace Revitalize.Framework.Objects
                             StardewValley.Object obj = this.location.getObjectAtTile((int)neighborTile.X, (int)neighborTile.Y);
                             if (obj is MultiTiledComponent)
                             {
-                                if ((obj as MultiTiledComponent).GetEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Produces || (obj as MultiTiledComponent).GetEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Transfers || (obj as MultiTiledComponent).GetEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Storage)
+                                if ((obj as MultiTiledComponent).getEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Produces || (obj as MultiTiledComponent).getEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Transfers || (obj as MultiTiledComponent).getEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Storage)
                                 {
                                     if ((obj as MultiTiledComponent).containerObject == this.containerObject) continue;
                                     customObjects.Add((MultiTiledComponent)obj);
@@ -471,7 +471,7 @@ namespace Revitalize.Framework.Objects
                             StardewValley.Object obj = this.location.getObjectAtTile((int)neighborTile.X, (int)neighborTile.Y);
                             if (obj is MultiTiledComponent)
                             {
-                                if ((obj as MultiTiledComponent).GetEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Consumes || (obj as MultiTiledComponent).GetEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Transfers || (obj as MultiTiledComponent).GetEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Storage)
+                                if ((obj as MultiTiledComponent).getEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Consumes || (obj as MultiTiledComponent).getEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Transfers || (obj as MultiTiledComponent).getEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Storage)
                                 {
                                     if ((obj as MultiTiledComponent).containerObject == this.containerObject) continue;
                                     customObjects.Add((MultiTiledComponent)obj);
@@ -493,15 +493,15 @@ namespace Revitalize.Framework.Objects
         /// <returns></returns>
         protected virtual List<MultiTiledComponent> getAppropriateEnergyNeighbors()
         {
-            if (this.GetEnergyManager().consumesEnergy)
+            if (this.getEnergyManager().consumesEnergy)
             {
                 return this.GetNeighboringOutputEnergySources();
             }
-            else if (this.GetEnergyManager().producesEnergy)
+            else if (this.getEnergyManager().producesEnergy)
             {
                 return this.GetNeighboringInputEnergySources();
             }
-            else if (this.GetEnergyManager().transfersEnergy)
+            else if (this.getEnergyManager().transfersEnergy)
             {
                 List<MultiTiledComponent> objs = new List<MultiTiledComponent>();
                 objs.AddRange(this.GetNeighboringInputEnergySources());
@@ -594,8 +594,8 @@ namespace Revitalize.Framework.Objects
 
             for(int i = 0; i < energySources.Count; i++)
             {
-                this.GetEnergyManager().transferEnergyFromAnother(energySources[i].GetEnergyManager(), this.GetEnergyManager().capacityRemaining);
-                if (this.GetEnergyManager().hasMaxEnergy) break;
+                this.getEnergyManager().transferEnergyFromAnother(energySources[i].getEnergyManager(), this.getEnergyManager().capacityRemaining);
+                if (this.getEnergyManager().hasMaxEnergy) break;
             }
         }
 
@@ -605,8 +605,8 @@ namespace Revitalize.Framework.Objects
 
             for (int i = 0; i < energySources.Count; i++)
             {
-                this.GetEnergyManager().transferEnergyFromAnother(energySources[i].GetEnergyManager(), this.GetEnergyManager().capacityRemaining);
-                if (this.GetEnergyManager().hasMaxEnergy) break;
+                this.getEnergyManager().transferEnergyFromAnother(energySources[i].getEnergyManager(), this.getEnergyManager().capacityRemaining);
+                if (this.getEnergyManager().hasMaxEnergy) break;
             }
         }
 
@@ -621,8 +621,8 @@ namespace Revitalize.Framework.Objects
 
             for (int i = 0; i < energySources.Count; i++)
             {
-                this.GetEnergyManager().transferEnergyToAnother(energySources[i].GetEnergyManager(), this.GetEnergyManager().capacityRemaining);
-                if (this.GetEnergyManager().hasEnergy==false) break;
+                this.getEnergyManager().transferEnergyToAnother(energySources[i].getEnergyManager(), this.getEnergyManager().capacityRemaining);
+                if (this.getEnergyManager().hasEnergy==false) break;
             }
         }
 
@@ -633,12 +633,12 @@ namespace Revitalize.Framework.Objects
 
             for (int i = 0; i < energySources.Count; i++)
             {
-                this.GetEnergyManager().transferEnergyToAnother(energySources[i].GetEnergyManager(), this.GetEnergyManager().capacityRemaining);
-                if (this.GetEnergyManager().hasEnergy==false) break;
+                this.getEnergyManager().transferEnergyToAnother(energySources[i].getEnergyManager(), this.getEnergyManager().capacityRemaining);
+                if (this.getEnergyManager().hasEnergy==false) break;
             }
         }
 
-        public override ref EnergyManager GetEnergyManager()
+        public override ref EnergyManager getEnergyManager()
         {
             if (this.info == null || this.containerObject == null)
             {

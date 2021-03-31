@@ -2,15 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Microsoft.Xna.Framework;
-using PyTK.Extensions;
-using PyTK.Types;
 using Revitalize.Framework;
 using Revitalize.Framework.Crafting;
 using Revitalize.Framework.Environment;
-using Revitalize.Framework.Factories.Objects;
 using Revitalize.Framework.Illuminate;
-using Revitalize.Framework.Objects;
-using Revitalize.Framework.Objects.Furniture;
 using Revitalize.Framework.Player;
 using Revitalize.Framework.Utilities;
 using StardewModdingAPI;
@@ -19,20 +14,16 @@ using StardewValley.Objects;
 using StardustCore.UIUtilities;
 using StardustCore.Animations;
 using StardewValley.Menus;
-using Revitalize.Framework.Objects.Extras;
 using Revitalize.Framework.Minigame.SeasideScrambleMinigame;
-using Revitalize.Framework.Objects.Items.Resources;
 using Revitalize.Framework.Hacks;
 using Revitalize.Framework.Configs;
 using StardewValley.Locations;
 using System.Linq;
 using StardustCore.UIUtilities.MenuComponents.ComponentsV2.Buttons;
 using Revitalize.Framework.Menus;
-using Revitalize.Framework.Objects.CraftingTables;
-using Revitalize.Framework.Objects.Items.Tools;
 using StardewValley.Tools;
 using Revitalize.Framework.Menus.Machines;
-using Revitalize.Framework.Objects.Machines;
+using Revitalize.Framework.Objects;
 
 namespace Revitalize
 {
@@ -216,19 +207,12 @@ namespace Revitalize
         /// </summary>
         public static ObjectManager ObjectManager;
 
-        /// <summary>
-        /// Keeps track of all of the extra object groups.
-        /// </summary>
-        public static Dictionary<string, MultiTiledObject> ObjectGroups;
-
         public static PlayerInfo playerInfo;
 
-        public static Serializer Serializer;
 
-        public static Dictionary<GameLocation, MultiTiledObject> ObjectsToDraw;
         public static VanillaRecipeBook VanillaRecipeBook;
 
-        public static Dictionary<Guid, CustomObject> CustomObjects;
+       // public static Dictionary<Guid, CustomObject> CustomObjects;
         public static Dictionary<Guid, Item> CustomItems;
 
         public static ConfigManager Configs;
@@ -241,18 +225,18 @@ namespace Revitalize
 
             this.createDirectories();
             this.initailizeComponents();
-            Serializer = new Serializer();
+
+            ObjectManager = new ObjectManager();
+
             playerInfo = new PlayerInfo();
-            CustomObjects = new Dictionary<Guid, CustomObject>();
+            //CustomObjects = new Dictionary<Guid, CustomObject>();
             CustomItems = new Dictionary<Guid, Item>();
 
             //Loads in textures to be used by the mod.
             this.loadInTextures();
 
             //Loads in objects to be use by the mod.
-            ObjectGroups = new Dictionary<string, MultiTiledObject>();
-            ObjectManager = new ObjectManager(Manifest);
-            ObjectsToDraw = new Dictionary<GameLocation, MultiTiledObject>();
+            //ObjectManager = new ObjectManager(Manifest);
 
             //Adds in event handling for the mod.
             ModHelper.Events.GameLoop.SaveLoaded += this.GameLoop_SaveLoaded;
@@ -262,31 +246,48 @@ namespace Revitalize
             ModHelper.Events.GameLoop.TimeChanged += this.GameLoop_TimeChanged;
             ModHelper.Events.GameLoop.UpdateTicked += this.GameLoop_UpdateTicked;
             ModHelper.Events.GameLoop.ReturnedToTitle += this.GameLoop_ReturnedToTitle;
-            
-            ModHelper.Events.Player.Warped += ObjectManager.resources.OnPlayerLocationChanged;
-            ModHelper.Events.GameLoop.DayStarted += ObjectManager.resources.DailyResourceSpawn;
+
+            ModHelper.Events.Display.MenuChanged += this.Display_MenuChanged;
+
+
+            //ModHelper.Events.Player.Warped += ObjectManager.resources.OnPlayerLocationChanged;
+            //ModHelper.Events.GameLoop.DayStarted += ObjectManager.resources.DailyResourceSpawn;
+
+
+
+
             ModHelper.Events.Input.ButtonPressed += this.Input_ButtonPressed;
             ModHelper.Events.Input.ButtonPressed += ObjectInteractionHacks.Input_CheckForObjectInteraction;
 
-            ModHelper.Events.GameLoop.DayEnding += Serializer.DayEnding_CleanUpFilesForDeletion;
             ModHelper.Events.Display.RenderedWorld += ObjectInteractionHacks.Render_RenderCustomObjectsHeldInMachines;
             //ModHelper.Events.Display.Rendered += MenuHacks.EndOfDay_OnMenuChanged;
             //ModHelper.Events.GameLoop.Saved += MenuHacks.EndOfDay_CleanupForNewDay;
-            ModHelper.Events.Multiplayer.ModMessageReceived += MultiplayerUtilities.GetModMessage;
             ModHelper.Events.Input.ButtonPressed += ObjectInteractionHacks.ResetNormalToolsColorOnLeftClick;
 
             ModHelper.Events.Input.ButtonPressed += this.Input_ButtonPressed1;
 
             ModHelper.Events.Display.MenuChanged += MenuHacks.RecreateFarmhandInventory;
 
-            ObjectManager.loadInItems();
+            //ObjectManager.loadInItems();
             //Adds in recipes to the mod.
             VanillaRecipeBook = new VanillaRecipeBook();
             CraftingRecipeBook.CraftingRecipesByGroup = new Dictionary<string, CraftingRecipeBook>();
         }
 
+        private void Display_MenuChanged(object sender, StardewModdingAPI.Events.MenuChangedEventArgs e)
+        {
+            if (e.NewMenu != null)
+            {
+                if (e.NewMenu is ShopMenu)
+                {
+                    ShopHacks.AddInCustomItemsToShops();
+                }
+            }
+        }
+
         private void Input_ButtonPressed1(object sender, StardewModdingAPI.Events.ButtonPressedEventArgs e)
         {
+            /*
             if(e.Button== SButton.MouseLeft)
             {
                 if (Game1.player != null)
@@ -305,6 +306,7 @@ namespace Revitalize
                     }
                 }
             }
+            */
         }
 
 
@@ -355,6 +357,7 @@ namespace Revitalize
                 Game1.currentMinigame = new Revitalize.Framework.Minigame.SeasideScrambleMinigame.SeasideScramble();
             }
             */
+            /*
             if (e.Button == SButton.U)
             {
                 CraftingMenuV1 craft = new CraftingMenuV1(100, 100, 600, 800, Color.White, Game1.player.Items.ToList());
@@ -368,6 +371,7 @@ namespace Revitalize
                 craft.sortRecipes();
                 Game1.activeClickableMenu = craft;
             }
+            */
             /*
             if (e.Button == SButton.Y)
             {
@@ -449,15 +453,14 @@ namespace Revitalize
 
         private void GameLoop_ReturnedToTitle(object sender, StardewModdingAPI.Events.ReturnedToTitleEventArgs e)
         {
-            Serializer.returnToTitle();
-            ObjectManager = new ObjectManager(Manifest);
+            //ObjectManager = new ObjectManager(Manifest);
         }
         /// <summary>
         /// Must be enabled for the tabled to be placed????
         /// </summary>
         private void loadContent()
         {
-
+            /*
             MultiTiledComponent obj = new MultiTiledComponent(PyTKHelper.CreateOBJData("Omegasis.Revitalize.MultiTiledComponent.Test", TextureManager.GetTexture(Manifest, "Furniture", "Oak Chair"), typeof(MultiTiledComponent), Color.White), new BasicItemInformation("CoreObjectTest", "Omegasis.TEST1", "YAY FUN!", "Omegasis.Revitalize.MultiTiledComponent.Test", Color.White, -300, 0, false, 300, true, true, TextureManager.GetTexture(Manifest, "Furniture", "Oak Chair"), new AnimationManager(TextureManager.GetExtendedTexture(Manifest, "Furniture", "Oak Chair"), new Animation(new Rectangle(0, 0, 16, 16))), Color.White, false, null, null));
             MultiTiledComponent obj2 = new MultiTiledComponent(PyTKHelper.CreateOBJData("Omegasis.Revitalize.MultiTiledComponent.Test", TextureManager.GetTexture(Manifest, "Furniture", "Oak Chair"), typeof(MultiTiledComponent), Color.White), new BasicItemInformation("CoreObjectTest2", "Omegasis.TEST2", "Some fun!", "Omegasis.Revitalize.MultiTiledComponent.Test", Color.White, -300, 0, false, 300, true, true, TextureManager.GetTexture(Manifest, "Furniture", "Oak Chair"), new AnimationManager(TextureManager.GetExtendedTexture(Manifest, "Furniture", "Oak Chair"), new Animation(new Rectangle(0, 16, 16, 16))), Color.White, false, null, null));
             MultiTiledComponent obj3 = new MultiTiledComponent(PyTKHelper.CreateOBJData("Omegasis.Revitalize.MultiTiledComponent.Test", TextureManager.GetTexture(Manifest, "Furniture", "Oak Chair"), typeof(MultiTiledComponent), Color.White), new BasicItemInformation("CoreObjectTest3", "Omegasis.TEST3", "NoFun", "Omegasis.Revitalize.MultiTiledComponent.Test", Color.White, -300, 0, false, 100, true, true, TextureManager.GetTexture(Manifest, "Furniture", "Oak Chair"), new AnimationManager(TextureManager.GetExtendedTexture(Manifest, "Furniture", "Oak Chair"), new Animation(new Rectangle(0, 32, 16, 16))), Color.Red, false, null, null));
@@ -477,7 +480,7 @@ namespace Revitalize
                 [bigObject] = 1
             }, new KeyValuePair<Item, int>(new Furniture(3, Vector2.Zero), 1), new StatCost(100, 50, 0, 0));
             */
-
+            /*
             ObjectManager.miscellaneous.Add("Omegasis.BigTiledTest", bigObject);
 
 
@@ -520,6 +523,7 @@ namespace Revitalize
             ObjectManager.miscellaneous.Add("Omegasis.Revitalize.Furniture.Arcade.SeasideScramble", sscCabinet);
 
             //ModCore.log("Added in SSC!");
+            */
 
         }
 
@@ -558,9 +562,6 @@ namespace Revitalize
         private void GameLoop_SaveLoaded(object sender, StardewModdingAPI.Events.SaveLoadedEventArgs e)
         {
             //this.loadContent();
-
-
-            Serializer.afterLoad();
             ShopHacks.AddInCustomItemsToShops();
             ObjectInteractionHacks.AfterLoad_RestoreTrackedMachines();
 
@@ -568,6 +569,7 @@ namespace Revitalize
             // Game1.player.addItemToInventory(GetObjectFromPool("Omegasis.BigTiledTest"));
             //Game1.player.addItemToInventory(ObjectManager.getChair("Omegasis.Revitalize.Furniture.Chairs.OakChair"));
 
+            /*
             Game1.player.addItemToInventoryBool(ObjectManager.GetItem("Workbench"));
 
 
@@ -601,6 +603,7 @@ namespace Revitalize
                 ModCore.ObjectManager.GetItem("WindmillV1"),
                 ModCore.ObjectManager.GetItem("WindmillV2")
             });
+            */
         }
 
         /*

@@ -8,7 +8,7 @@ namespace Revitalize.Framework.Energy
 {
     public interface IEnergyInterface
     {
-        ref EnergyManager GetEnergyManager();
-        void SetEnergyManager(ref EnergyManager Manager);
+        ref EnergyManager getEnergyManager();
+        void setEnergyManager(ref EnergyManager Manager);
     }
 }

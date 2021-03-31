@@ -7,21 +7,20 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
 using PyTK.CustomElementHandler;
-using Revitalize.Framework.Energy;
+using Revitalize.Framework.Managers;
 using Revitalize.Framework.Objects.InformationFiles;
 using Revitalize.Framework.Utilities;
 using StardewValley;
 using StardustCore.Animations;
-using StardustCore.UIUtilities;
 
-namespace Revitalize.Framework.Objects.Machines
+namespace Revitalize.Framework.Objects.Machines.EnergyGeneration
 {
-    public class ChargingStation:Machine
+    public class Windmill:Machine
     {
 
-        public ChargingStation() { }
+        public Windmill() { }
 
-        public ChargingStation(CustomObjectData PyTKData, BasicItemInformation info, List<ResourceInformation> ProducedResources = null, int EnergyRequiredPer10Minutes = 0, int TimeToProduce = 0, bool UpdatesContainer = false, string CraftingBook = "") : base(PyTKData, info)
+        public Windmill(CustomObjectData PyTKData, BasicItemInformation info, List<ResourceInformation> ProducedResources = null, int EnergyRequiredPer10Minutes = 0, int TimeToProduce = 0, bool UpdatesContainer = false, string CraftingBook = "", Fluid FluidRequiredForOperation = null, int FluidAmountRequiredPerOperation = 0) : base(PyTKData, info)
         {
             this.producedResources = ProducedResources ?? new List<ResourceInformation>();
             this.energyRequiredPer10Minutes = EnergyRequiredPer10Minutes;
@@ -30,10 +29,11 @@ namespace Revitalize.Framework.Objects.Machines
             this.MinutesUntilReady = TimeToProduce;
             this.craftingRecipeBook = CraftingBook;
             this.createStatusBubble();
-
+            this.requiredFluidForOperation = FluidRequiredForOperation;
+            this.amountOfFluidRequiredForOperation = FluidAmountRequiredPerOperation;
         }
 
-        public ChargingStation(CustomObjectData PyTKData, BasicItemInformation info, Vector2 TileLocation, List<ResourceInformation> ProducedResources = null, int EnergyRequiredPer10Minutes = 0, int TimeToProduce = 0, bool UpdatesContainer = false, string CraftingBook = "", MultiTiledObject obj = null) : base(PyTKData, info, TileLocation)
+        public Windmill(CustomObjectData PyTKData, BasicItemInformation info, Vector2 TileLocation, List<ResourceInformation> ProducedResources = null, int EnergyRequiredPer10Minutes = 0, int TimeToProduce = 0, bool UpdatesContainer = false, string CraftingBook = "", MultiTiledObject obj = null, Fluid FluidRequiredForOperation = null, int FluidAmountRequiredPerOperation = 0) : base(PyTKData, info, TileLocation)
         {
             this.containerObject = obj;
             this.producedResources = ProducedResources ?? new List<ResourceInformation>();
@@ -43,9 +43,11 @@ namespace Revitalize.Framework.Objects.Machines
             this.MinutesUntilReady = TimeToProduce;
             this.craftingRecipeBook = CraftingBook;
             this.createStatusBubble();
+            this.requiredFluidForOperation = FluidRequiredForOperation;
+            this.amountOfFluidRequiredForOperation = FluidAmountRequiredPerOperation;
         }
 
-        public ChargingStation(CustomObjectData PyTKData, BasicItemInformation info, Vector2 TileLocation, Vector2 offsetKey, List<ResourceInformation> ProducedResources = null, int EnergyRequiredPer10Minutes = 0, int TimeToProduce = 0, bool UpdatesContainer = false, string CraftingBook = "", MultiTiledObject obj = null) : base(PyTKData, info, TileLocation)
+        public Windmill(CustomObjectData PyTKData, BasicItemInformation info, Vector2 TileLocation, Vector2 offsetKey, List<ResourceInformation> ProducedResources = null, int EnergyRequiredPer10Minutes = 0, int TimeToProduce = 0, bool UpdatesContainer = false, string CraftingBook = "", MultiTiledObject obj = null, Fluid FluidRequiredForOperation = null, int FluidAmountRequiredPerOperation = 0) : base(PyTKData, info, TileLocation)
         {
             this.offsetKey = offsetKey;
             this.containerObject = obj;
@@ -56,99 +58,108 @@ namespace Revitalize.Framework.Objects.Machines
             this.MinutesUntilReady = TimeToProduce;
             this.craftingRecipeBook = CraftingBook;
             this.createStatusBubble();
+            this.requiredFluidForOperation = FluidRequiredForOperation;
+            this.amountOfFluidRequiredForOperation = FluidAmountRequiredPerOperation;
         }
 
         public override void updateWhenCurrentLocation(GameTime time, GameLocation environment)
         {
             base.updateWhenCurrentLocation(time, environment);
+
+            this.animationManager.prepareForNextUpdateTick();
         }
 
 
         public override bool minutesElapsed(int minutes, GameLocation environment)
         {
+
             this.updateInfo();
+            //ModCore.log(this.info.animationManager.currentAnimationName);
+            this.info.animationManager.playAnimation("Working");
             if (this.updatesContainerObjectForProduction)
             {
-                //ModCore.log("Update container object for production!");
-                //this.MinutesUntilReady -= minutes;
                 int remaining = minutes;
-                //ModCore.log("Minutes elapsed: " + remaining);
-                List<MultiTiledObject> energySources = new List<MultiTiledObject>();
-                if (this.ConsumesEnergy || this.GetEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Storage)
+
+                if (this.getEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Produces)
                 {
-                    //ModCore.log("This machine drains energy: " + this.info.name);
-                    energySources = this.EnergyGraphSearchSources(); //Only grab the network once.
-                }
-                this.drainEnergyFromNetwork(energySources);
-                foreach(Item I in this.GetInventoryManager().items)
-                {
-                    if (I is null) continue;
-                    if (I is IEnergyInterface==false) continue;
-                    IEnergyInterface o = (IEnergyInterface)I;
-                    if (o.GetEnergyManager().canReceieveEnergy)
+                    while (remaining > 0)
                     {
-                        this.GetEnergyManager().transferEnergyToAnother(o.GetEnergyManager(), Math.Min(this.GetEnergyManager().remainingEnergy, o.GetEnergyManager().capacityRemaining));
+                        remaining -= 10;
+                        this.produceEnergy();
+                        this.storeEnergyToNetwork();
                     }
-                    if (this.GetEnergyManager().hasEnergy == false) break;
                 }
 
                 return false;
             }
             else
             {
+
+                if (this.getEnergyManager().energyInteractionType == Enums.EnergyInteractionType.Produces)
+                {
+                    this.storeEnergyToNetwork();
+                }
+
                 return false;
             }
+
+            //return base.minutesElapsed(minutes, environment);
+        }
+
+        public override bool rightClicked(Farmer who)
+        {
+            if (this.location == null)
+                this.location = Game1.player.currentLocation;
+            if (Game1.menuUp || Game1.currentMinigame != null) return false;
+
+            //ModCore.playerInfo.sittingInfo.sit(this, Vector2.Zero);
+            this.createMachineMenu();
+            return true;
         }
 
 
         public override Item getOne()
         {
-            ChargingStation component = new ChargingStation(this.data, this.info.Copy(), this.TileLocation, this.offsetKey, this.producedResources, this.energyRequiredPer10Minutes, this.timeToProduce, this.updatesContainerObjectForProduction, this.craftingRecipeBook, this.containerObject);
+            Windmill component = new Windmill(this.data, this.info.Copy(), this.producedResources, this.energyRequiredPer10Minutes, this.timeToProduce, this.updatesContainerObjectForProduction, this.craftingRecipeBook, this.requiredFluidForOperation, this.amountOfFluidRequiredForOperation);
+            //component.containerObject = this.containerObject;
+            //component.offsetKey = this.offsetKey;
             return component;
         }
 
         public override ICustomObject recreate(Dictionary<string, string> additionalSaveData, object replacement)
         {
-            //instead of using this.offsetkey.x use get additional save data function and store offset key there
-
             Vector2 offsetKey = new Vector2(Convert.ToInt32(additionalSaveData["offsetKeyX"]), Convert.ToInt32(additionalSaveData["offsetKeyY"]));
-            ChargingStation self = Revitalize.ModCore.Serializer.DeserializeGUID<ChargingStation>(additionalSaveData["GUID"]);
-            if (self == null)
+            string GUID = additionalSaveData["GUID"];
+            Windmill self = Revitalize.ModCore.Serializer.DeserializeGUID<Windmill>(additionalSaveData["GUID"]);
+            if (ModCore.IsNullOrDefault<Machine>(self)) return null;
+            try
             {
-                return null;
+                if (!Revitalize.ModCore.ObjectGroups.ContainsKey(additionalSaveData["ParentGUID"]))
+                {
+                    MultiTiledObject obj = (MultiTiledObject)Revitalize.ModCore.Serializer.DeserializeGUID<MultiTiledObject>(additionalSaveData["ParentGUID"]);
+                    self.containerObject = obj;
+                    self.containerObject.removeComponent(offsetKey);
+                    self.containerObject.addComponent(offsetKey, self);
+                    Revitalize.ModCore.ObjectGroups.Add(additionalSaveData["ParentGUID"], obj);
+                }
+                else
+                {
+                    self.containerObject = Revitalize.ModCore.ObjectGroups[additionalSaveData["ParentGUID"]];
+                    self.containerObject.removeComponent(offsetKey);
+                    self.containerObject.addComponent(offsetKey, self);
+                }
+            }
+            catch (Exception err)
+            {
+                ModCore.log(err);
             }
 
-            if (!Revitalize.ModCore.ObjectGroups.ContainsKey(additionalSaveData["ParentGUID"]))
-            {
-                //Get new container
-                MultiTiledObject obj = (MultiTiledObject)Revitalize.ModCore.Serializer.DeserializeGUID<MultiTiledObject>(additionalSaveData["ParentGUID"]);
-                self.containerObject = obj;
-                obj.addComponent(offsetKey, self);
-                //Revitalize.ModCore.log("ADD IN AN OBJECT!!!!");
-                Revitalize.ModCore.ObjectGroups.Add(additionalSaveData["ParentGUID"], (MultiTiledObject)obj);
-            }
-            else
-            {
-                self.containerObject = Revitalize.ModCore.ObjectGroups[additionalSaveData["ParentGUID"]];
-                Revitalize.ModCore.ObjectGroups[additionalSaveData["GUID"]].addComponent(offsetKey, self);
-                //Revitalize.ModCore.log("READD AN OBJECT!!!!");
-            }
-
-            return (ICustomObject)self;
+            return self;
         }
 
         public override void rebuild(Dictionary<string, string> additionalSaveData, object replacement)
         {
             base.rebuild(additionalSaveData, replacement);
-        }
-
-        public override Dictionary<string, string> getAdditionalSaveData()
-        {
-            Dictionary<string, string> saveData = base.getAdditionalSaveData();
-            Revitalize.ModCore.Serializer.SerializeGUID(this.containerObject.childrenGuids[this.offsetKey].ToString(), this);
-            this.containerObject.getAdditionalSaveData();
-            return saveData;
-
         }
 
         public override void draw(SpriteBatch spriteBatch, int x, int y, float alpha = 1f)
@@ -193,7 +204,10 @@ namespace Revitalize.Framework.Objects.Machines
 
                 try
                 {
-                    this.animationManager.tickAnimation();
+                    if (this.animationManager.canTickAnimation())
+                    {
+                        this.animationManager.tickAnimation();
+                    }
                     // Log.AsyncC("Tick animation");
                 }
                 catch (Exception err)
@@ -206,6 +220,53 @@ namespace Revitalize.Framework.Objects.Machines
 
         }
 
+        public override void produceEnergy()
+        {
+            if (this.location != null)
+            {
+                if (this.location.IsOutdoors == false) return;
+            }
+            if (this.getEnergyManager().canReceieveEnergy)
+            {
+                if (WeatherUtilities.IsWeatherGoodForWindmills())
+                {
+                    this.getEnergyManager().produceEnergy((int)(this.energyRequiredPer10Minutes*ModCore.Configs.machinesConfig.windmill_windyDayPowerMultiplier));
+                }
+                else
+                {
+                    this.getEnergyManager().produceEnergy(this.energyRequiredPer10Minutes);
+                }
+            }
 
+        }
+
+        public override void updateInfo()
+        {
+            if (this.info == null || this.containerObject == null)
+            {
+                this.ItemInfo = this.text;
+                //ModCore.log("Updated item info!");
+                return;
+            }
+
+            if (this.requiresUpdate())
+            {
+                //this.ItemInfo = this.text;
+                this.text = this.ItemInfo;
+                this.info.cleanAfterUpdate();
+                //this.containerObject.updateInfo();
+                //ModCore.log("Force an update for machine: " + this.info.name);
+                MultiplayerUtilities.RequestUpdateSync(this.guid);
+            }
+        }
+
+        public override Dictionary<string, string> getAdditionalSaveData()
+        {
+            Dictionary<string, string> saveData = base.getAdditionalSaveData();
+            Revitalize.ModCore.Serializer.SerializeGUID(this.containerObject.childrenGuids[this.offsetKey].ToString(), this);
+            this.containerObject.getAdditionalSaveData();
+            return saveData;
+
+        }
     }
 }
