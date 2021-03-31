@@ -267,10 +267,6 @@ namespace Revitalize.Framework.Menus
             if (ObjectUtilities.IsSameType(typeof(StardewValley.Object), this.actualItem.GetType())){
                 return new Vector2(0, 64f);
             }
-            if (ObjectUtilities.IsSameType(typeof(Revitalize.Framework.Objects.MultiTiledObject), this.actualItem.GetType()))
-            {
-                return new Vector2(0, 64f*(this.actualItem as MultiTiledObject).Height);
-            }
 
             return new Vector2(0, 64f);
         }

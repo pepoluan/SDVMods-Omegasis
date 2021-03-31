@@ -143,7 +143,7 @@ namespace Revitalize.Framework.Hacks
             EndOfDay_HasProcessedModdedItems = false;
         }
 
-
+        /*
         /// <summary>
         /// Recreates the farmhand's inventory even when they are offline.
         /// </summary>
@@ -185,6 +185,7 @@ namespace Revitalize.Framework.Hacks
                 }
             }
         }
+        */
 
     }
 }

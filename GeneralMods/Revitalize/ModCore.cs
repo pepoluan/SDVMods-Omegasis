@@ -24,6 +24,7 @@ using Revitalize.Framework.Menus;
 using StardewValley.Tools;
 using Revitalize.Framework.Menus.Machines;
 using Revitalize.Framework.Objects;
+using SpaceShared.APIs;
 
 namespace Revitalize
 {
@@ -242,6 +243,7 @@ namespace Revitalize
             ModHelper.Events.GameLoop.SaveLoaded += this.GameLoop_SaveLoaded;
             ModHelper.Events.GameLoop.SaveLoaded += CraftingRecipeBook.AfterLoad_LoadRecipeBooks;
             ModHelper.Events.GameLoop.Saving += CraftingRecipeBook.BeforeSave_SaveRecipeBooks;
+            ModHelper.Events.GameLoop.GameLaunched += this.GameLoop_GameLaunched;
 
             ModHelper.Events.GameLoop.TimeChanged += this.GameLoop_TimeChanged;
             ModHelper.Events.GameLoop.UpdateTicked += this.GameLoop_UpdateTicked;
@@ -266,12 +268,18 @@ namespace Revitalize
 
             ModHelper.Events.Input.ButtonPressed += this.Input_ButtonPressed1;
 
-            ModHelper.Events.Display.MenuChanged += MenuHacks.RecreateFarmhandInventory;
-
             //ObjectManager.loadInItems();
             //Adds in recipes to the mod.
             VanillaRecipeBook = new VanillaRecipeBook();
             CraftingRecipeBook.CraftingRecipesByGroup = new Dictionary<string, CraftingRecipeBook>();
+        }
+
+        private void GameLoop_GameLaunched(object sender, StardewModdingAPI.Events.GameLaunchedEventArgs e)
+        {
+            var spaceCore = ModHelper.ModRegistry.GetApi<SpaceCoreAPI>("spacechase0.SpaceCore");
+            spaceCore.RegisterSerializerType(typeof(CustomObject));
+            spaceCore.RegisterSerializerType(typeof(CustomLargeObject));
+            spaceCore.RegisterSerializerType(typeof(CustomItem));
         }
 
         private void Display_MenuChanged(object sender, StardewModdingAPI.Events.MenuChangedEventArgs e)

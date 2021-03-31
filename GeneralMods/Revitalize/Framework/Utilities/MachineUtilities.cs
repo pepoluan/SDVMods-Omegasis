@@ -10,6 +10,7 @@ namespace Revitalize.Framework.Utilities
     public class MachineUtilities
     {
 
+        /*
         public static Dictionary<string, List<ResourceInformation>> ResourcesForMachines;
 
 
@@ -39,10 +40,10 @@ namespace Revitalize.Framework.Utilities
                 new Objects.InformationFiles.ResourceInformation(new StardewValley.Object((int)Enums.SDVObject.BatteryPack,1),1,1,1,1,1,1,0,0,0,0)
             } },
             {"Omegasis.Revitalize.Objects.Machines.Sandbox",new List<ResourceInformation>(){
-                new Objects.InformationFiles.ResourceInformation(ModCore.ObjectManager.items.getResource("Sand",1),1,1,1,1,1,1,0,0,0,0)
+                new Objects.InformationFiles.ResourceInformation(ModCore.ObjectManager.getItem("Sand",1),1,1,1,1,1,1,0,0,0,0)
             } }
         };
         }
-
+        */
     }
 }
