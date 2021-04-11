@@ -7,11 +7,12 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Revitalize.Framework.Menus.MenuComponents;
-using Revitalize.Framework.Objects.Machines;
+using Omegasis.Revitalize.Framework.World.Objects.Machines;
 using StardewValley;
 using StardewValley.Menus;
 using StardustCore.UIUtilities;
 using StardustCore.UIUtilities.MenuComponents.ComponentsV2.Buttons;
+using Omegasis.Revitalize;
 
 namespace Revitalize.Framework.Menus
 {

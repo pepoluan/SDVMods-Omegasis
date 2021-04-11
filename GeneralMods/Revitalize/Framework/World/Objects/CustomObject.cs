@@ -1,0 +1,680 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Xml.Serialization;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
+using Omegasis.Revitalize.Framework.Illuminate;
+using Omegasis.Revitalize.Framework.World.Objects.InformationFiles;
+using Omegasis.Revitalize.Framework.World.Objects.Interfaces;
+using Revitalize.Framework;
+using Revitalize.Framework.Objects;
+using StardewValley;
+using StardustCore.Animations;
+
+namespace Omegasis.Revitalize.Framework.World.Objects
+{
+    /// <summary>
+    /// A base class that is to be extended by other implementations of objects.
+    /// </summary>
+    [XmlType("Omegasis.Revitalize.Framework.World.Objects.CustomObject")]
+    public class CustomObject:StardewValley.Object, ICommonObjectInterface, ILightManagerProvider, IBasicItemInfoProvider
+    {
+        public bool isCurrentLocationAStructure;
+
+        public BasicItemInformation basicItemInfo;
+
+        public override string Name { get => this.basicItemInfo.name; set => this.basicItemInfo.name = value; }
+        public override string DisplayName { get => this.basicItemInfo.name; set => this.basicItemInfo.name = value; }
+
+        [XmlIgnore]
+        public AnimationManager AnimationManager
+        {
+            get
+            {
+                if (this.basicItemInfo == null) return null;
+                if (this.basicItemInfo.animationManager == null) return null;
+                return this.basicItemInfo.animationManager;
+            }
+            set
+            {
+                this.basicItemInfo.animationManager = value;
+            }
+        }
+
+        [XmlIgnore]
+        public Texture2D CurrentTextureToDisplay
+        {
+
+            get
+            {
+                if (this.AnimationManager == null) return null;
+                return this.AnimationManager.getTexture();
+            }
+        }
+
+        public CustomObject()
+        {
+            this.basicItemInfo = new BasicItemInformation();
+        }
+
+        public CustomObject(BasicItemInformation basicItemInfo)
+        {
+            this.basicItemInfo=basicItemInfo;
+        }
+
+        public CustomObject(BasicItemInformation basicItemInfo, int StackSize=1)
+        {
+            this.basicItemInfo = basicItemInfo;
+            this.TileLocation = Vector2.Zero;
+            this.Stack = StackSize;
+        }
+
+        public CustomObject(BasicItemInformation basicItemInfo, Vector2 TileLocation)
+        {
+            this.basicItemInfo = basicItemInfo;
+            this.TileLocation = TileLocation;
+        }
+
+        public CustomObject(BasicItemInformation basicItemInfo, Vector2 TileLocation, int StackSize=1)
+        {
+            this.basicItemInfo = basicItemInfo;
+            this.TileLocation = TileLocation;
+            this.Stack = StackSize;
+        }
+
+        public override bool performDropDownAction(Farmer who)
+        {
+            return base.performDropDownAction(who);
+        }
+
+        public override void actionOnPlayerEntry()
+        {
+            base.actionOnPlayerEntry();
+        }
+
+        public override void actionWhenBeingHeld(Farmer who)
+        {
+            base.actionWhenBeingHeld(who);
+        }
+
+        public override bool actionWhenPurchased()
+        {
+            return base.actionWhenPurchased();
+        }
+
+        public override void actionWhenStopBeingHeld(Farmer who)
+        {
+            base.actionWhenStopBeingHeld(who);
+        }
+
+        public override void ApplySprinkler(GameLocation location, Vector2 tile)
+        {
+            base.ApplySprinkler(location, tile);
+        }
+
+        public override bool canBeDropped()
+        {
+            return true;
+        }
+
+        public override bool canBeGivenAsGift()
+        {
+            return base.canBeGivenAsGift();
+        }
+
+        public override bool canBePlacedInWater()
+        {
+            return base.canBePlacedInWater();
+        }
+
+        public override bool canBeShipped()
+        {
+            return base.canBeShipped();
+        }
+
+        public override int attachmentSlots()
+        {
+            return base.attachmentSlots();
+        }
+
+        public override bool canBeTrashed()
+        {
+            return base.canBeTrashed();
+        }
+
+        public override bool CanBuyItem(Farmer who)
+        {
+            return base.CanBuyItem(who);
+        }
+
+        /// <summary>
+        /// Checks to see if the object is being interacted with.
+        /// </summary>
+        /// <param name="who"></param>
+        /// <param name="justCheckingForActivity"></param>
+        /// <returns></returns>
+        public override bool checkForAction(Farmer who, bool justCheckingForActivity = false)
+        {
+            MouseState mState = Mouse.GetState();
+            KeyboardState keyboardState = Game1.GetKeyboardState();
+
+            if (mState.RightButton == ButtonState.Pressed && keyboardState.IsKeyDown(Keys.LeftShift) == false && keyboardState.IsKeyDown(Keys.RightShift) == false)
+            {
+                //ModCore.log("Right clicked!");
+                return this.rightClicked(who);
+            }
+
+            if (mState.RightButton == ButtonState.Pressed && (keyboardState.IsKeyDown(Keys.LeftShift) == true || keyboardState.IsKeyDown(Keys.RightShift) == true))
+                return this.shiftRightClicked(who);
+
+            return base.checkForAction(who, justCheckingForActivity);
+        }
+
+        public override string checkForSpecialItemHoldUpMeessage()
+        {
+            return base.checkForSpecialItemHoldUpMeessage();
+        }
+
+        public override bool clicked(Farmer who)
+        {
+            return base.clicked(who);
+        }
+
+        public override void DayUpdate(GameLocation location)
+        {
+            base.DayUpdate(location);
+        }
+
+        public override void farmerAdjacentAction(GameLocation location)
+        {
+            base.farmerAdjacentAction(location);
+        }
+
+        public override int GetBaseRadiusForSprinkler()
+        {
+            return base.GetBaseRadiusForSprinkler();
+        }
+
+        /// <summary>
+        /// Category color.
+        /// </summary>
+        /// <returns></returns>
+        public override Color getCategoryColor()
+        {
+            return this.basicItemInfo.categoryColor;
+        }
+
+        /// <summary>
+        /// Category name
+        /// </summary>
+        /// <returns></returns>
+        public override string getCategoryName()
+        {
+            return this.basicItemInfo.categoryName;
+        }
+
+        /// <summary>
+        /// Hover box text
+        /// </summary>
+        /// <param name="hoveredItem"></param>
+        /// <returns></returns>
+        public override string getHoverBoxText(Item hoveredItem)
+        {
+            return base.getHoverBoxText(hoveredItem);
+        }
+
+        /// <summary>
+        /// Description
+        /// </summary>
+        /// <returns></returns>
+        public override string getDescription()
+        {
+            return this.basicItemInfo.description;
+        }
+
+        public override StardewValley.Object GetDeconstructorOutput(Item item)
+        {
+            return base.GetDeconstructorOutput(item);
+        }
+
+        public override Item getOne()
+        {
+            return new CustomObject(this.basicItemInfo.Copy());
+        }
+
+        public override void _GetOneFrom(Item source)
+        {
+            base._GetOneFrom(source);
+        }
+
+        public override int healthRecoveredOnConsumption()
+        {
+            return this.basicItemInfo.healthRestoredOnEating;
+        }
+
+        public override void hoverAction()
+        {
+            base.hoverAction();
+        }
+
+        public override void initializeLightSource(Vector2 tileLocation, bool mineShaft = false)
+        {
+            base.initializeLightSource(tileLocation, mineShaft);
+        }
+
+        public override bool isActionable(Farmer who)
+        {
+            return base.isActionable(who);
+        }
+
+        public override bool isAnimalProduct()
+        {
+            return base.isAnimalProduct();
+        }
+
+        public override bool isForage(GameLocation location)
+        {
+            return base.isForage(location);
+        }
+
+        public override bool isPassable()
+        {
+            if (this.basicItemInfo.ignoreBoundingBox) return true;
+
+            return base.isPassable();
+        }
+
+        public override List<Vector2> GetSprinklerTiles()
+        {
+            return base.GetSprinklerTiles();
+        }
+
+        public override bool isPlaceable()
+        {
+            return base.isPlaceable();
+        }
+
+        public override bool IsSprinkler()
+        {
+            return base.IsSprinkler();
+        }
+
+        public override int maximumStackSize()
+        {
+            return base.maximumStackSize();
+        }
+
+        /// <summary>
+        /// When so many minutes pass,update this object.
+        /// </summary>
+        /// <param name="minutes"></param>
+        /// <param name="environment"></param>
+        /// <returns></returns>
+        public override bool minutesElapsed(int minutes, GameLocation environment)
+        {
+            return base.minutesElapsed(minutes, environment);
+        }
+
+        public override bool onExplosion(Farmer who, GameLocation location)
+        {
+            return base.onExplosion(who, location);
+        }
+
+        public override void onReadyForHarvest(GameLocation environment)
+        {
+            base.onReadyForHarvest(environment);
+        }
+
+        /// <summary>
+        /// When the object is droped into (???) what happens?
+        /// </summary>
+        /// <param name="dropInItem"></param>
+        /// <param name="probe"></param>
+        /// <param name="who"></param>
+        /// <returns></returns>
+        public override bool performObjectDropInAction(Item dropInItem, bool probe, Farmer who)
+        {
+            return base.performObjectDropInAction(dropInItem, probe, who);
+        }
+
+        /// <summary>
+        /// When this object is removed what happens?
+        /// </summary>
+        /// <param name="tileLocation"></param>
+        /// <param name="environment"></param>
+        public override void performRemoveAction(Vector2 tileLocation, GameLocation environment)
+        {
+            this.cleanUpLights();
+            base.performRemoveAction(tileLocation, environment);
+        }
+
+        /// <summary>
+        /// When a tool is used on this item.
+        /// </summary>
+        /// <param name="t"></param>
+        /// <param name="location"></param>
+        /// <returns></returns>
+        public override bool performToolAction(Tool t, GameLocation location)
+        {
+            return base.performToolAction(t, location);
+        }
+
+        /// <summary>
+        /// When this item is used. (Left clicked)
+        /// </summary>
+        /// <param name="location"></param>
+        /// <returns></returns>
+        public override bool performUseAction(GameLocation location)
+        {
+            return base.performUseAction(location);
+        }
+
+        public override bool placementAction(GameLocation location, int x, int y, Farmer who = null)
+        {
+            return base.placementAction(location, x, y, who);
+        }
+
+        public override int salePrice()
+        {
+            return this.basicItemInfo.price;
+        }
+
+        public override int sellToStorePrice(long specificPlayerID = -1)
+        {
+            return this.basicItemInfo.price;
+            return base.sellToStorePrice(specificPlayerID);
+        }
+
+        public override void reloadSprite()
+        {
+            base.reloadSprite();
+        }
+
+        public override int staminaRecoveredOnConsumption()
+        {
+            return this.basicItemInfo.staminaRestoredOnEating;
+        }
+
+        public override void updateWhenCurrentLocation(GameTime time, GameLocation environment)
+        {
+            base.updateWhenCurrentLocation(time, environment);
+        }
+
+
+
+        /// <summary>What happens when the player right clicks the object.</summary>
+        public virtual bool rightClicked(Farmer who)
+        {
+            return true;
+        }
+
+        /// <summary>What happens when the player shift-right clicks this object.</summary>
+        public virtual bool shiftRightClicked(Farmer who)
+        {
+            return true;
+        }
+        /// <summary>Remove the object from the world and add it to the player's inventory if possible.</summary>
+        public virtual bool removeAndAddToPlayersInventory()
+        {
+            if (Game1.player.isInventoryFull())
+            {
+                Game1.showRedMessage("Inventory full.");
+                return false;
+            }
+            this.basicItemInfo.locationName = "";
+            Game1.player.currentLocation.removeObject(this.TileLocation, false);
+            Game1.player.addItemToInventory(this);
+            //this.updateDrawPosition(0, 0);
+            return true;
+        }
+
+
+        public virtual void setGameLocation(string LocationName, bool IsStructure)
+        {
+            this.basicItemInfo.locationName = LocationName;
+            this.isCurrentLocationAStructure = IsStructure;
+        }
+
+        public virtual GameLocation getCurrentLocation()
+        {
+            if (string.IsNullOrEmpty(this.basicItemInfo.locationName))
+            {
+                return null;
+            }
+            else
+            {
+                return Game1.getLocationFromName(this.basicItemInfo.locationName, this.isCurrentLocationAStructure);
+            }
+        }
+
+
+        public virtual void cleanUpLights()
+        {
+            if (this.GetLightManager() != null) this.GetLightManager().removeForCleanUp(this.getCurrentLocation());
+        }
+
+        public virtual BasicItemInformation getItemInformation()
+        {
+            return this.basicItemInfo;
+        }
+
+        public virtual void setItemInformation(BasicItemInformation Info)
+        {
+            this.basicItemInfo = Info;
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="DyeColor"></param>
+        public virtual void dyeColor(NamedColor DyeColor)
+        {
+            this.basicItemInfo.dyedColor = DyeColor;
+        }
+
+        public virtual void eraseDye()
+        {
+            this.basicItemInfo.dyedColor = new NamedColor("", new Color(0, 0, 0, 0));
+        }
+
+        public override bool canStackWith(ISalable other)
+        {
+            if (other is CustomObject == false) return false;
+            CustomObject o = (CustomObject)other;
+
+            if (this.basicItemInfo.dyedColor != o.basicItemInfo.dyedColor) return false;
+            if (this.basicItemInfo.id.Equals( o.basicItemInfo.id)==false) return false;
+            if (this.basicItemInfo.EnergyManager.remainingEnergy != o.basicItemInfo.EnergyManager.remainingEnergy) return false;
+
+            return base.canStackWith(other);
+        }
+
+        
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+        //                            Rendering code                   //
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+
+        public override void drawAsProp(SpriteBatch b)
+        {
+            base.drawAsProp(b);
+        }
+
+        public override void drawInMenu(SpriteBatch spriteBatch, Vector2 location, float scaleSize, float transparency, float layerDepth, StackDrawType drawStackNumber, Color color, bool drawShadow)
+        {
+            if (this.AnimationManager == null)
+            {
+
+                ModCore.log("Texture null for item: " + this.basicItemInfo.id);
+                return;
+            }
+            if (this.CurrentTextureToDisplay == null)
+            {
+                ModCore.log("Texture null for item: " + this.basicItemInfo.id);
+                return;
+            }
+
+            if (this.basicItemInfo == null) return;
+
+            int scaleNerfing = Math.Max(this.AnimationManager.currentAnimation.sourceRectangle.Width, this.AnimationManager.currentAnimation.sourceRectangle.Height) / 16;
+
+            ModCore.log("Scale nerf: " + scaleNerfing);
+
+            spriteBatch.Draw(this.CurrentTextureToDisplay, location + new Vector2((float)(Game1.tileSize / 2), (float)(Game1.tileSize)), new Rectangle?(this.AnimationManager.currentAnimation.sourceRectangle), this.basicItemInfo.DrawColor * transparency, 0f, new Vector2((float)(this.AnimationManager.currentAnimation.sourceRectangle.Width / 2), (float)(this.AnimationManager.currentAnimation.sourceRectangle.Height)), (scaleSize * 4f) / scaleNerfing, SpriteEffects.None, layerDepth);
+
+            if (drawStackNumber.ShouldDrawFor(this) && this.maximumStackSize() > 1 && ((double)scaleSize > 0.3 && this.Stack != int.MaxValue) && this.Stack > 1)
+                Utility.drawTinyDigits(this.Stack, spriteBatch, location + new Vector2((float)(Game1.tileSize - Utility.getWidthOfTinyDigitString(this.Stack, 3f * scaleSize)) + 3f * scaleSize, (float)((double)Game1.tileSize - 18.0 * (double)scaleSize + 2.0)), 3f * scaleSize, 1f, Color.White);
+            if (drawStackNumber.ShouldDrawFor(this) && this.Quality > 0)
+            {
+                float num = this.Quality < 4 ? 0.0f : (float)((Math.Cos((double)Game1.currentGameTime.TotalGameTime.Milliseconds * Math.PI / 512.0) + 1.0) * 0.0500000007450581);
+                spriteBatch.Draw(Game1.mouseCursors, location + new Vector2(12f, (float)(Game1.tileSize - 12) + num), new Microsoft.Xna.Framework.Rectangle?(this.Quality < 4 ? new Microsoft.Xna.Framework.Rectangle(338 + (this.Quality - 1) * 8, 400, 8, 8) : new Microsoft.Xna.Framework.Rectangle(346, 392, 8, 8)), Color.White * transparency, 0.0f, new Vector2(4f, 4f), (float)(3.0 * (double)scaleSize * (1.0 + (double)num)), SpriteEffects.None, layerDepth);
+            }
+        }
+
+        public override void drawAttachments(SpriteBatch b, int x, int y)
+        {
+            base.drawAttachments(b, x, y);
+        }
+
+        public override void drawWhenHeld(SpriteBatch spriteBatch, Vector2 objectPosition, Farmer f)
+        {
+            if (this.AnimationManager == null)
+            {
+                if (this.CurrentTextureToDisplay == null)
+                {
+                    ModCore.log("Texture null for item: " + this.basicItemInfo.id);
+                    return;
+                }
+            }
+
+            if (f.ActiveObject.bigCraftable.Value)
+            {
+                spriteBatch.Draw(this.CurrentTextureToDisplay, objectPosition, this.AnimationManager.currentAnimation.sourceRectangle, this.basicItemInfo.DrawColor, 0f, Vector2.Zero, (float)Game1.pixelZoom, SpriteEffects.None, Math.Max(0f, (float)(f.getStandingY() + 2) / 10000f));
+                return;
+            }
+
+            spriteBatch.Draw(this.CurrentTextureToDisplay, objectPosition, this.AnimationManager.currentAnimation.sourceRectangle, this.basicItemInfo.DrawColor, 0f, Vector2.Zero, (float)Game1.pixelZoom, SpriteEffects.None, Math.Max(0f, (float)(f.getStandingY() + 2) / 10000f));
+            if (f.ActiveObject != null && f.ActiveObject.Name.Contains("="))
+            {
+                spriteBatch.Draw(this.CurrentTextureToDisplay, objectPosition + new Vector2((float)(Game1.tileSize / 2), (float)(Game1.tileSize / 2)), this.AnimationManager.currentAnimation.sourceRectangle, Color.White, 0f, new Vector2((float)(Game1.tileSize / 2), (float)(Game1.tileSize / 2)), (float)Game1.pixelZoom + Math.Abs(Game1.starCropShimmerPause) / 8f, SpriteEffects.None, Math.Max(0f, (float)(f.getStandingY() + 2) / 10000f));
+                if (Math.Abs(Game1.starCropShimmerPause) <= 0.05f && Game1.random.NextDouble() < 0.97)
+                {
+                    return;
+                }
+                Game1.starCropShimmerPause += 0.04f;
+                if (Game1.starCropShimmerPause >= 0.8f)
+                {
+                    Game1.starCropShimmerPause = -0.8f;
+                }
+            }
+            //base.drawWhenHeld(spriteBatch, objectPosition, f);
+        }
+
+        /// <summary>What happens when the object is drawn at a tile location.</summary>
+        public override void draw(SpriteBatch spriteBatch, int x, int y, float alpha = 1f)
+        {
+            if (this.AnimationManager == null)
+            {
+                if (this.CurrentTextureToDisplay == null)
+                {
+                    ModCore.log("Texture null for item: " + this.basicItemInfo.id);
+                    return;
+                }
+            }
+
+            if (x <= -1)
+            {
+                spriteBatch.Draw(this.basicItemInfo.animationManager.getTexture(), Game1.GlobalToLocal(Game1.viewport, this.basicItemInfo.drawPosition), new Rectangle?(this.AnimationManager.currentAnimation.sourceRectangle), this.basicItemInfo.DrawColor * alpha, 0f, Vector2.Zero, (float)Game1.pixelZoom, this.flipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None, Math.Max(0f, (float)(this.TileLocation.Y * Game1.tileSize) / 10000f));
+            }
+            else
+            {
+                //The actual planter box being drawn.
+                if (this.AnimationManager == null)
+                {
+                    if (this.AnimationManager.getExtendedTexture() == null)
+                        ModCore.ModMonitor.Log("Tex Extended is null???");
+
+                    spriteBatch.Draw(this.CurrentTextureToDisplay, Game1.GlobalToLocal(Game1.viewport, new Vector2((float)(x * Game1.tileSize), y * Game1.tileSize)), new Rectangle?(this.AnimationManager.currentAnimation.sourceRectangle), this.basicItemInfo.DrawColor * alpha, 0f, Vector2.Zero, (float)Game1.pixelZoom, this.flipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None, Math.Max(0f, (float)(this.TileLocation.Y * Game1.tileSize) / 10000f));
+                    // Log.AsyncG("ANIMATION IS NULL?!?!?!?!");
+                }
+
+                else
+                {
+                    //Log.AsyncC("Animation Manager is working!");
+                    int addedDepth = 0;
+                    if (this.basicItemInfo.ignoreBoundingBox) addedDepth++;
+                    if (Revitalize.ModCore.playerInfo.sittingInfo.SittingObject == this) addedDepth++;
+                    this.AnimationManager.draw(spriteBatch, this.CurrentTextureToDisplay, Game1.GlobalToLocal(Game1.viewport, new Vector2((float)(x * Game1.tileSize), y * Game1.tileSize)), new Rectangle?(this.AnimationManager.currentAnimation.sourceRectangle), this.basicItemInfo.DrawColor * alpha, 0f, Vector2.Zero, (float)Game1.pixelZoom, this.flipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None, Math.Max(0f, (float)((this.TileLocation.Y + addedDepth) * Game1.tileSize) / 10000f));
+                    try
+                    {
+                        this.AnimationManager.tickAnimation();
+                        // Log.AsyncC("Tick animation");
+                    }
+                    catch (Exception err)
+                    {
+                        ModCore.ModMonitor.Log(err.ToString());
+                    }
+                }
+
+                // spriteBatch.Draw(Game1.mouseCursors, Game1.GlobalToLocal(Game1.viewport, new Vector2((float)((double)tileLocation.X * (double)Game1.tileSize + (((double)tileLocation.X * 11.0 + (double)tileLocation.Y * 7.0) % 10.0 - 5.0)) + (float)(Game1.tileSize / 2), (float)((double)tileLocation.Y * (double)Game1.tileSize + (((double)tileLocation.Y * 11.0 + (double)tileLocation.X * 7.0) % 10.0 - 5.0)) + (float)(Game1.tileSize / 2))), new Rectangle?(new Rectangle((int)((double)tileLocation.X * 51.0 + (double)tileLocation.Y * 77.0) % 3 * 16, 128 + this.whichForageCrop * 16, 16, 16)), Color.White, 0.0f, new Vector2(8f, 8f), (float)Game1.pixelZoom, SpriteEffects.None, (float)(((double)tileLocation.Y * (double)Game1.tileSize + (double)(Game1.tileSize / 2) + (((double)tileLocation.Y * 11.0 + (double)tileLocation.X * 7.0) % 10.0 - 5.0)) / 10000.0));
+            }
+        }
+
+        /// <summary>Draw the game object at a non-tile spot. Aka like debris.</summary>
+        public override void draw(SpriteBatch spriteBatch, int xNonTile, int yNonTile, float layerDepth, float alpha = 1f)
+        {
+            if (this.AnimationManager == null)
+            {
+                if (this.CurrentTextureToDisplay == null)
+                {
+                    ModCore.log("Texture null for item: " + this.basicItemInfo.id);
+                    return;
+                }
+            }
+
+            //The actual planter box being drawn.
+            if (this.AnimationManager == null)
+            {
+                if (this.AnimationManager.getExtendedTexture() == null)
+                    ModCore.ModMonitor.Log("Tex Extended is null???");
+
+                spriteBatch.Draw(this.CurrentTextureToDisplay, Game1.GlobalToLocal(Game1.viewport, new Vector2((float)(xNonTile), yNonTile)), new Rectangle?(this.AnimationManager.currentAnimation.sourceRectangle), this.basicItemInfo.DrawColor * alpha, 0f, Vector2.Zero, (float)Game1.pixelZoom, this.Flipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None, Math.Max(0f, layerDepth));
+                // Log.AsyncG("ANIMATION IS NULL?!?!?!?!");
+            }
+
+            else
+            {
+                //Log.AsyncC("Animation Manager is working!");
+                int addedDepth = 0;
+                if (this.basicItemInfo.ignoreBoundingBox) addedDepth++;
+                if (Revitalize.ModCore.playerInfo.sittingInfo.SittingObject == this) addedDepth++;
+                this.AnimationManager.draw(spriteBatch, this.CurrentTextureToDisplay, Game1.GlobalToLocal(Game1.viewport, new Vector2((float)(xNonTile), yNonTile)), new Rectangle?(this.AnimationManager.currentAnimation.sourceRectangle), this.basicItemInfo.DrawColor * alpha, 0f, Vector2.Zero, (float)Game1.pixelZoom, this.Flipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None, Math.Max(0f, layerDepth));
+                try
+                {
+                    this.AnimationManager.tickAnimation();
+                    // Log.AsyncC("Tick animation");
+                }
+                catch (Exception err)
+                {
+                    ModCore.ModMonitor.Log(err.ToString());
+                }
+            }
+
+            // spriteBatch.Draw(Game1.mouseCursors, Game1.GlobalToLocal(Game1.viewport, new Vector2((float)((double)tileLocation.X * (double)Game1.tileSize + (((double)tileLocation.X * 11.0 + (double)tileLocation.Y * 7.0) % 10.0 - 5.0)) + (float)(Game1.tileSize / 2), (float)((double)tileLocation.Y * (double)Game1.tileSize + (((double)tileLocation.Y * 11.0 + (double)tileLocation.X * 7.0) % 10.0 - 5.0)) + (float)(Game1.tileSize / 2))), new Rectangle?(new Rectangle((int)((double)tileLocation.X * 51.0 + (double)tileLocation.Y * 77.0) % 3 * 16, 128 + this.whichForageCrop * 16, 16, 16)), Color.White, 0.0f, new Vector2(8f, 8f), (float)Game1.pixelZoom, SpriteEffects.None, (float)(((double)tileLocation.Y * (double)Game1.tileSize + (double)(Game1.tileSize / 2) + (((double)tileLocation.Y * 11.0 + (double)tileLocation.X * 7.0) % 10.0 - 5.0)) / 10000.0));
+
+        }
+
+
+        public virtual LightManager GetLightManager()
+        {
+            return this.basicItemInfo.lightManager;
+        }
+
+
+    }
+}

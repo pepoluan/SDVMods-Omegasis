@@ -4,6 +4,8 @@
     <TargetFramework>net452</TargetFramework>
 
     <RootNamespace>Vocalization</RootNamespace>
+
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>

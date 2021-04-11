@@ -8,12 +8,13 @@ using Microsoft.Xna.Framework.Graphics;
 using Revitalize.Framework.Crafting;
 using Revitalize.Framework.Menus.Machines;
 using Revitalize.Framework.Menus.MenuComponents;
-using Revitalize.Framework.Objects;
-using Revitalize.Framework.Objects.Machines;
+using Omegasis.Revitalize.Framework.World.Objects;
+using Omegasis.Revitalize.Framework.World.Objects.Machines;
 using Revitalize.Framework.Utilities;
 using StardewValley;
 using StardustCore.UIUtilities;
 using StardustCore.UIUtilities.MenuComponents.ComponentsV2.Buttons;
+using Omegasis.Revitalize;
 
 namespace Revitalize.Framework.Menus
 {
@@ -137,7 +138,7 @@ namespace Revitalize.Framework.Menus
                         }
                         else
                         {
-                            this.machine.containerObject.MinutesUntilReady = this.infoButton.recipe.timeToCraft;
+                            this.machine.MinutesUntilReady = this.infoButton.recipe.timeToCraft;
                         }
                     }
 
@@ -266,10 +267,6 @@ namespace Revitalize.Framework.Menus
         {
             if (ObjectUtilities.IsSameType(typeof(StardewValley.Object), this.actualItem.GetType())){
                 return new Vector2(0, 64f);
-            }
-            if (ObjectUtilities.IsSameType(typeof(Revitalize.Framework.Objects.MultiTiledObject), this.actualItem.GetType()))
-            {
-                return new Vector2(0, 64f*(this.actualItem as MultiTiledObject).Height);
             }
 
             return new Vector2(0, 64f);

@@ -4,8 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Omegasis.Revitalize;
 
-namespace Revitalize.Framework.Configs
+namespace Omegasis.Revitalize.Framework.Configs
 {
     /// <summary>
     /// Deals with config settings for furniture.
@@ -36,7 +37,7 @@ namespace Revitalize.Framework.Configs
             else
             {
                 FurnitureConfig Config = new FurnitureConfig();
-                ModCore.ModHelper.Data.WriteJsonFile<FurnitureConfig>(Path.Combine("Configs", "FurnitureConfig.json"), Config);
+                ModCore.ModHelper.Data.WriteJsonFile(Path.Combine("Configs", "FurnitureConfig.json"), Config);
                 return Config;
             }
         }

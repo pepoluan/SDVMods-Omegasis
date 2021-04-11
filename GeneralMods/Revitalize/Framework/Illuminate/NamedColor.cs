@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 
-namespace Revitalize.Framework.Illuminate
+namespace Omegasis.Revitalize.Framework.Illuminate
 {
     public class NamedColor
     {
@@ -14,7 +14,7 @@ namespace Revitalize.Framework.Illuminate
 
         public NamedColor()
         {
-            
+
         }
 
         public NamedColor(string Name, Color Color)
@@ -29,14 +29,12 @@ namespace Revitalize.Framework.Illuminate
             this.color = Color;
         }
 
-        public NamedColor(string Name, int r, int g, int b, int a = 255, bool Invert=false)
+        public NamedColor(string Name, int r, int g, int b, int a = 255, bool Invert = false)
         {
             this.name = Name;
             this.color = new Color(r, g, b, a);
             if (Invert)
-            {
                 this.color = this.color.Invert();
-            }
         }
 
         public Color getColor()

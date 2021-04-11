@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Revitalize.Framework.Configs
+namespace Omegasis.Revitalize.Framework.Configs
 {
     /// <summary>
     /// Handles holding all of the config information.

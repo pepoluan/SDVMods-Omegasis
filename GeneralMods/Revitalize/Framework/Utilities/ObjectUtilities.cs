@@ -57,10 +57,6 @@ namespace Revitalize.Framework.Utilities
             {
                 return new Vector2(64f, 64f);
             }
-            if (ObjectUtilities.IsSameType(typeof(Revitalize.Framework.Objects.MultiTiledObject), obj.GetType()))
-            {
-                return new Vector2(64f * (obj as MultiTiledObject).Width, 64f * (obj as MultiTiledObject).Height);
-            }
 
             return new Vector2(64f, 64f);
         }

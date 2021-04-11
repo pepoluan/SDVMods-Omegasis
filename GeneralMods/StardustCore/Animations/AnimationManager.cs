@@ -504,6 +504,10 @@ namespace StardustCore.Animations
 
         public Texture2D getTexture()
         {
+            if (this.objectTexture == null)
+            {
+                return null;
+            }
             return this.objectTexture.getTexture();
         }
 

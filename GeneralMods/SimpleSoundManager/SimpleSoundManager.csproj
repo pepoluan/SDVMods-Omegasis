@@ -5,6 +5,8 @@
     <TargetFramework>net452</TargetFramework>
 
     <RootNamespace>SimpleSoundManager</RootNamespace>
+
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>

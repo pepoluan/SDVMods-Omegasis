@@ -4,6 +4,8 @@
     <TargetFramework>net452</TargetFramework>
 
     <RootNamespace>StardustCore</RootNamespace>
+
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>

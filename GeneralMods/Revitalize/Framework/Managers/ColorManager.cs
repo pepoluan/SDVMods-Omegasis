@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 
-namespace Revitalize.Framework.Managers
+namespace Omegasis.Revitalize.Framework.Managers
 {
     public class ColorManager
     {

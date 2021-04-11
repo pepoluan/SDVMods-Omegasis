@@ -1,9 +1,11 @@
 using System;
 using System.IO;
 using Microsoft.Xna.Framework;
+using Omegasis.Revitalize;
+using Omegasis.Revitalize.Framework.Configs;
 using StardewValley;
 
-namespace Revitalize.Framework.Environment
+namespace Omegasis.Revitalize.Framework.Environment
 {
     /// <summary>Deals with making night time darker in Stardew.</summary>
     public class DarkerNight
@@ -63,18 +65,13 @@ namespace Revitalize.Framework.Environment
                 Game1.outdoorLight = (Game1.isRaining ? Game1.ambientLight : Game1.eveningColor) * num;
             }
 
-            ModCore.log("OUT: " + Game1.outdoorLight);
+            //ModCore.log("OUT: " + Game1.outdoorLight);
 
             int red = Game1.outdoorLight.R;
 
             if (Game1.player.currentLocation.IsOutdoors && Game1.timeOfDay >= Game1.getStartingToGetDarkTime())
-            {
                 //Game1.ambientLight = Game1.ambientLight.GreyScaleAverage();
                 CalculatedColor = Game1.ambientLight * ((red + 30) / 255f) * Config.DarknessIntensity;
-
-                ModCore.log("OUT: " + CalculatedColor);
-                ModCore.log("Ambient" + Game1.ambientLight);
-            }
         }
     }
 }

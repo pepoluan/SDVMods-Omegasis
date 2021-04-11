@@ -4,8 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Omegasis.Revitalize;
 
-namespace Revitalize.Framework.Configs
+namespace Omegasis.Revitalize.Framework.Configs
 {
     public class GlobalMachineConfig
     {
@@ -59,7 +60,7 @@ namespace Revitalize.Framework.Configs
             else
             {
                 GlobalMachineConfig Config = new GlobalMachineConfig();
-                ModCore.ModHelper.Data.WriteJsonFile<GlobalMachineConfig>(Path.Combine("Configs", "MachinesConfig.json"), Config);
+                ModCore.ModHelper.Data.WriteJsonFile(Path.Combine("Configs", "MachinesConfig.json"), Config);
                 return Config;
             }
         }

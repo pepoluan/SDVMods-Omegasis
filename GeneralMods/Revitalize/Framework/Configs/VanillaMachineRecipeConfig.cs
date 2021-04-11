@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Revitalize.Framework.Environment;
+using Omegasis.Revitalize;
 
-namespace Revitalize.Framework.Configs
+namespace Omegasis.Revitalize.Framework.Configs
 {
     public class VanillaMachineRecipeConfig
     {
@@ -34,7 +34,7 @@ namespace Revitalize.Framework.Configs
             else
             {
                 VanillaMachineRecipeConfig Config = new VanillaMachineRecipeConfig();
-                ModCore.ModHelper.Data.WriteJsonFile<VanillaMachineRecipeConfig>(Path.Combine("Configs", "VanillaMachineRecipeConfig.json"), Config);
+                ModCore.ModHelper.Data.WriteJsonFile(Path.Combine("Configs", "VanillaMachineRecipeConfig.json"), Config);
                 return Config;
             }
         }

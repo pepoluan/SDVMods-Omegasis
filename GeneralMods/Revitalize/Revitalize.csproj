@@ -4,6 +4,8 @@
     <TargetFramework>net452</TargetFramework>
 
     <RootNamespace>Revitalize</RootNamespace>
+
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,7 +13,7 @@
 
     <ProjectReference Include="..\StardustCore\StardustCore.csproj" Private="False" />
 
-    <Reference Include="PyTK" HintPath="$(GamePath)\Mods\PyTK\PyTK.dll" Private="False" />
+    <Reference Include="SpaceCore" HintPath="$(GamePath)\Mods\SpaceCore\SpaceCore.dll" Private="False" />
   </ItemGroup>
 
   <ItemGroup>

@@ -5,12 +5,12 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 
-namespace Revitalize.Framework.Utilities
+namespace Omegasis.Revitalize.Framework.Utilities
 {
     public class EnergyUtilities
     {
 
-        public static Color GetEnergyRemainingColor(Energy.EnergyManager Energy)
+        public static Color GetEnergyRemainingColor(Omegasis.Revitalize.Framework.Energy.EnergyManager Energy)
         {
             Color col = new Color();
             //ModCore.log("Energy is: " + this.energy.energyPercentRemaining);

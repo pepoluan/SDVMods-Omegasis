@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Newtonsoft.Json;
 using StardewValley;
 
-namespace Revitalize.Framework.Illuminate
+namespace Omegasis.Revitalize.Framework.Illuminate
 {
     /// <summary>
     /// Deals with handling lights on custom objects.
@@ -28,7 +28,7 @@ namespace Revitalize.Framework.Illuminate
         /// <summary>
         /// Magic number for positioning.
         /// </summary>
-        public const int lightBigNumber= 1000000;
+        public const int lightBigNumber = 1000000;
 
         [JsonIgnore]
         public bool requiresUpdate;
@@ -47,7 +47,7 @@ namespace Revitalize.Framework.Illuminate
         public bool addLight(Vector2 IdKey, LightSource light, StardewValley.Object gameObject)
         {
             if (gameObject.TileLocation.X < 0) gameObject.TileLocation = new Vector2(gameObject.TileLocation.X * -1, gameObject.TileLocation.Y);
-            if (gameObject.TileLocation.Y < 0) gameObject.TileLocation = new Vector2(gameObject.TileLocation.X, gameObject.TileLocation.Y*-1);
+            if (gameObject.TileLocation.Y < 0) gameObject.TileLocation = new Vector2(gameObject.TileLocation.X, gameObject.TileLocation.Y * -1);
 
             Vector2 initialPosition = gameObject.TileLocation * Game1.tileSize;
             initialPosition += IdKey;
@@ -120,12 +120,10 @@ namespace Revitalize.Framework.Illuminate
 
 
             if (light.lightTexture == null)
-            {
                 light.lightTexture = this.loadTextureFromConstantValue(light.Identifier);
-            }
 
             Game1.currentLightSources.Add(light);
-            location.sharedLights.Add((int)IdKey.X*lightBigNumber+(int)IdKey.Y,light);
+            location.sharedLights.Add((int)IdKey.X * lightBigNumber + (int)IdKey.Y, light);
             this.repositionLight(light, IdKey, gameObject);
             this.requiresUpdate = true;
             return true;
@@ -235,7 +233,7 @@ namespace Revitalize.Framework.Illuminate
         /// <returns></returns>
         public LightManager Copy()
         {
-            LightManager copy= new LightManager();
+            LightManager copy = new LightManager();
             if (this.lights != null)
             {
                 //ModCore.log("Info for file"+Path.GetFileNameWithoutExtension(file)+" has this many lights: " + info.info.lightManager.fakeLights.Count);
@@ -252,10 +250,10 @@ namespace Revitalize.Framework.Illuminate
             return copy;
         }
 
-        public static LightSource CreateLightSource(float Radius, Color ActualColor,int Texture=4)
+        public static LightSource CreateLightSource(float Radius, Color ActualColor, int Texture = 4)
         {
             return new LightSource(Texture, new Vector2(0, 0), Radius, ActualColor.Invert());
         }
-        
+
     }
 }
