@@ -12,7 +12,9 @@ using Omegasis.Revitalize.Framework.World.Objects.InformationFiles;
 using Omegasis.Revitalize.Framework.World.Objects.Interfaces;
 using Revitalize.Framework;
 using Revitalize.Framework.Objects;
+using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Objects;
 using StardustCore.Animations;
 
 namespace Omegasis.Revitalize.Framework.World.Objects
@@ -21,7 +23,7 @@ namespace Omegasis.Revitalize.Framework.World.Objects
     /// A base class that is to be extended by other implementations of objects.
     /// </summary>
     [XmlType("Omegasis.Revitalize.Framework.World.Objects.CustomObject")]
-    public class CustomObject:StardewValley.Object, ICommonObjectInterface, ILightManagerProvider, IBasicItemInfoProvider
+    public class CustomObject:StardewValley.Objects.Furniture, ICommonObjectInterface, ILightManagerProvider, IBasicItemInfoProvider
     {
         public bool isCurrentLocationAStructure;
 
@@ -59,11 +61,22 @@ namespace Omegasis.Revitalize.Framework.World.Objects
         public CustomObject()
         {
             this.basicItemInfo = new BasicItemInformation();
+            this.furniture_type.Value = Furniture.other;
+            this.bigCraftable.Value = true;
+
+            IReflectedField<int> placementRestriction = ModCore.ModHelper.Reflection.GetField<int>(this, "_placementRestriction");
+            placementRestriction.SetValue(2);
+
         }
 
         public CustomObject(BasicItemInformation basicItemInfo)
         {
             this.basicItemInfo=basicItemInfo;
+            this.bigCraftable.Value = true;
+            this.furniture_type.Value = Furniture.other;
+
+            IReflectedField<int> placementRestriction= ModCore.ModHelper.Reflection.GetField<int>(this, "_placementRestriction");
+            placementRestriction.SetValue(2);
         }
 
         public CustomObject(BasicItemInformation basicItemInfo, int StackSize=1)
@@ -71,24 +84,43 @@ namespace Omegasis.Revitalize.Framework.World.Objects
             this.basicItemInfo = basicItemInfo;
             this.TileLocation = Vector2.Zero;
             this.Stack = StackSize;
+            this.bigCraftable.Value = true;
+            this.furniture_type.Value = Furniture.other;
+
+            IReflectedField<int> placementRestriction = ModCore.ModHelper.Reflection.GetField<int>(this, "_placementRestriction");
+            placementRestriction.SetValue(2);
         }
 
         public CustomObject(BasicItemInformation basicItemInfo, Vector2 TileLocation)
         {
             this.basicItemInfo = basicItemInfo;
             this.TileLocation = TileLocation;
-        }
+            this.bigCraftable.Value = true;
+            this.furniture_type.Value = Furniture.other;
 
+            IReflectedField<int> placementRestriction = ModCore.ModHelper.Reflection.GetField<int>(this, "_placementRestriction");
+            placementRestriction.SetValue(2);
+        }
         public CustomObject(BasicItemInformation basicItemInfo, Vector2 TileLocation, int StackSize=1)
         {
             this.basicItemInfo = basicItemInfo;
             this.TileLocation = TileLocation;
             this.Stack = StackSize;
+            this.bigCraftable.Value = true;
+            this.furniture_type.Value = Furniture.other;
+
+            IReflectedField<int> placementRestriction = ModCore.ModHelper.Reflection.GetField<int>(this, "_placementRestriction");
+            placementRestriction.SetValue(2);
         }
 
+        /// <summary>
+        /// What happens when the item is placed into the game world.
+        /// </summary>
+        /// <param name="who"></param>
+        /// <returns></returns>
         public override bool performDropDownAction(Farmer who)
         {
-            return base.performDropDownAction(who);
+            return false;
         }
 
         public override void actionOnPlayerEntry()
@@ -124,6 +156,12 @@ namespace Omegasis.Revitalize.Framework.World.Objects
         public override bool canBeGivenAsGift()
         {
             return base.canBeGivenAsGift();
+        }
+
+        public override bool canBePlacedHere(GameLocation l, Vector2 tile)
+        {
+
+            return base.canBePlacedHere(l, tile);
         }
 
         public override bool canBePlacedInWater()
@@ -162,6 +200,12 @@ namespace Omegasis.Revitalize.Framework.World.Objects
             MouseState mState = Mouse.GetState();
             KeyboardState keyboardState = Game1.GetKeyboardState();
 
+            if (mState.LeftButton == ButtonState.Pressed)
+            {
+                //ModCore.log("Right clicked!");
+                return this.clicked(who);
+            }
+
             if (mState.RightButton == ButtonState.Pressed && keyboardState.IsKeyDown(Keys.LeftShift) == false && keyboardState.IsKeyDown(Keys.RightShift) == false)
             {
                 //ModCore.log("Right clicked!");
@@ -171,7 +215,7 @@ namespace Omegasis.Revitalize.Framework.World.Objects
             if (mState.RightButton == ButtonState.Pressed && (keyboardState.IsKeyDown(Keys.LeftShift) == true || keyboardState.IsKeyDown(Keys.RightShift) == true))
                 return this.shiftRightClicked(who);
 
-            return base.checkForAction(who, justCheckingForActivity);
+            return true;
         }
 
         public override string checkForSpecialItemHoldUpMeessage()
@@ -181,6 +225,9 @@ namespace Omegasis.Revitalize.Framework.World.Objects
 
         public override bool clicked(Farmer who)
         {
+
+            ModCore.log("CLICK THE WORLD!");
+            this.performRemoveAction(this.TileLocation, this.getCurrentLocation());
             return base.clicked(who);
         }
 
@@ -283,9 +330,27 @@ namespace Omegasis.Revitalize.Framework.World.Objects
 
         public override bool isPassable()
         {
+            return false;
             if (this.basicItemInfo.ignoreBoundingBox) return true;
-
             return base.isPassable();
+        }
+
+        public override Rectangle getBoundingBox(Vector2 tileLocation)
+        {
+
+            Microsoft.Xna.Framework.Rectangle boundingBox = this.boundingBox.Value;
+            Microsoft.Xna.Framework.Rectangle newBounds = boundingBox;
+            newBounds.X = (int)tileLocation.X * Game1.tileSize;
+            newBounds.Y = (int)tileLocation.Y * Game1.tileSize;
+
+            newBounds.Width = Game1.tileSize * 1;
+            newBounds.Height = Game1.tileSize * 2;
+
+            if (newBounds != boundingBox)
+            {
+                this.boundingBox.Set(boundingBox);
+            }
+            return newBounds;
         }
 
         public override List<Vector2> GetSprinklerTiles()
@@ -295,8 +360,9 @@ namespace Omegasis.Revitalize.Framework.World.Objects
 
         public override bool isPlaceable()
         {
-            return base.isPlaceable();
+            return true;
         }
+
 
         public override bool IsSprinkler()
         {
@@ -349,7 +415,28 @@ namespace Omegasis.Revitalize.Framework.World.Objects
         public override void performRemoveAction(Vector2 tileLocation, GameLocation environment)
         {
             this.cleanUpLights();
-            base.performRemoveAction(tileLocation, environment);
+
+
+
+            this.removeLights(environment);
+            if ((int)this.furniture_type == 14 || (int)this.furniture_type == 16)
+            {
+                base.isOn.Value = false;
+                this.setFireplace(environment, playSound: false);
+            }
+            this.RemoveLightGlow(environment);
+
+
+            environment.objects.Remove(this.TileLocation);
+            environment.furniture.Remove(this);
+            this.TileLocation = Vector2.Zero;
+            this.basicItemInfo.locationName = "";
+
+            this.sittingFarmers.Clear();
+            this.removeAndAddToPlayersInventory();
+
+
+            //base.performRemoveAction(tileLocation, environment);
         }
 
         /// <summary>
@@ -372,10 +459,50 @@ namespace Omegasis.Revitalize.Framework.World.Objects
         {
             return base.performUseAction(location);
         }
-
         public override bool placementAction(GameLocation location, int x, int y, Farmer who = null)
         {
-            return base.placementAction(location, x, y, who);
+
+            if (!this.isGroundFurniture())
+            {
+                y = this.GetModifiedWallTilePosition(location, x / 64, y / 64) * 64;
+            }
+            if (this.GetAdditionalFurniturePlacementStatus(location, x, y, who) != 0)
+            {
+                return false;
+            }
+            base.boundingBox.Value = new Rectangle(x / 64 * 64, y / 64 * 64, base.boundingBox.Width, base.boundingBox.Height);
+            foreach (Furniture f in location.furniture)
+            {
+                if ((int)f.furniture_type == 11 && f.heldObject.Value == null && f.getBoundingBox(f.tileLocation).Intersects(base.boundingBox))
+                {
+                    f.performObjectDropInAction(this, probe: false, (who == null) ? Game1.player : who);
+                    return true;
+                }
+            }
+            this.updateDrawPosition();
+
+
+
+            Vector2 placementTile = new Vector2(x / 64, y / 64);
+            this.health = 10;
+            if (who != null)
+            {
+                this.owner.Value = who.UniqueMultiplayerID;
+            }
+            else
+            {
+                this.owner.Value = Game1.player.UniqueMultiplayerID;
+            }
+            this.TileLocation = placementTile;
+
+
+            location.furniture.Add(this);
+            location.objects.Add(placementTile, this);
+            location.playSound("thudStep");
+            this.basicItemInfo.locationName = location.NameOrUniqueName;
+            //location.playSound("stoneStep");
+            return true;
+            //Base code throws and error so I have to do it this way.
         }
 
         public override int salePrice()
@@ -401,7 +528,15 @@ namespace Omegasis.Revitalize.Framework.World.Objects
 
         public override void updateWhenCurrentLocation(GameTime time, GameLocation environment)
         {
-            base.updateWhenCurrentLocation(time, environment);
+            if (this.shakeTimer > 0)
+            {
+                this.shakeTimer -= time.ElapsedGameTime.Milliseconds;
+                if (this.shakeTimer <= 0)
+                {
+                    this.health = 10;
+                }
+            }
+            
         }
 
 
@@ -426,7 +561,6 @@ namespace Omegasis.Revitalize.Framework.World.Objects
                 return false;
             }
             this.basicItemInfo.locationName = "";
-            Game1.player.currentLocation.removeObject(this.TileLocation, false);
             Game1.player.addItemToInventory(this);
             //this.updateDrawPosition(0, 0);
             return true;
@@ -467,6 +601,11 @@ namespace Omegasis.Revitalize.Framework.World.Objects
             this.basicItemInfo = Info;
         }
 
+
+        public override bool canBeRemoved(Farmer who)
+        {
+            return true;
+        }
 
         /// <summary>
         /// 
@@ -523,8 +662,6 @@ namespace Omegasis.Revitalize.Framework.World.Objects
 
             int scaleNerfing = Math.Max(this.AnimationManager.currentAnimation.sourceRectangle.Width, this.AnimationManager.currentAnimation.sourceRectangle.Height) / 16;
 
-            ModCore.log("Scale nerf: " + scaleNerfing);
-
             spriteBatch.Draw(this.CurrentTextureToDisplay, location + new Vector2((float)(Game1.tileSize / 2), (float)(Game1.tileSize)), new Rectangle?(this.AnimationManager.currentAnimation.sourceRectangle), this.basicItemInfo.DrawColor * transparency, 0f, new Vector2((float)(this.AnimationManager.currentAnimation.sourceRectangle.Width / 2), (float)(this.AnimationManager.currentAnimation.sourceRectangle.Height)), (scaleSize * 4f) / scaleNerfing, SpriteEffects.None, layerDepth);
 
             if (drawStackNumber.ShouldDrawFor(this) && this.maximumStackSize() > 1 && ((double)scaleSize > 0.3 && this.Stack != int.MaxValue) && this.Stack > 1)
@@ -578,21 +715,23 @@ namespace Omegasis.Revitalize.Framework.World.Objects
         /// <summary>What happens when the object is drawn at a tile location.</summary>
         public override void draw(SpriteBatch spriteBatch, int x, int y, float alpha = 1f)
         {
-            if (this.AnimationManager == null)
-            {
-                if (this.CurrentTextureToDisplay == null)
-                {
-                    ModCore.log("Texture null for item: " + this.basicItemInfo.id);
-                    return;
-                }
-            }
+
 
             if (x <= -1)
             {
-                spriteBatch.Draw(this.basicItemInfo.animationManager.getTexture(), Game1.GlobalToLocal(Game1.viewport, this.basicItemInfo.drawPosition), new Rectangle?(this.AnimationManager.currentAnimation.sourceRectangle), this.basicItemInfo.DrawColor * alpha, 0f, Vector2.Zero, (float)Game1.pixelZoom, this.flipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None, Math.Max(0f, (float)(this.TileLocation.Y * Game1.tileSize) / 10000f));
+                return;
+                //spriteBatch.Draw(this.basicItemInfo.animationManager.getTexture(), Game1.GlobalToLocal(Game1.viewport, this.TileLocation), new Rectangle?(this.AnimationManager.currentAnimation.sourceRectangle), this.basicItemInfo.DrawColor * alpha, 0f, Vector2.Zero, (float)Game1.pixelZoom, this.flipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None, Math.Max(0f, (float)(this.TileLocation.Y * Game1.tileSize) / 10000f));
             }
             else
             {
+                if (this.AnimationManager == null)
+                {
+                    if (this.CurrentTextureToDisplay == null)
+                    {
+                        ModCore.log("Texture null for item: " + this.basicItemInfo.id);
+                        return;
+                    }
+                }
                 //The actual planter box being drawn.
                 if (this.AnimationManager == null)
                 {
@@ -610,19 +749,25 @@ namespace Omegasis.Revitalize.Framework.World.Objects
                     if (this.basicItemInfo.ignoreBoundingBox) addedDepth++;
                     if (Revitalize.ModCore.playerInfo.sittingInfo.SittingObject == this) addedDepth++;
                     this.AnimationManager.draw(spriteBatch, this.CurrentTextureToDisplay, Game1.GlobalToLocal(Game1.viewport, new Vector2((float)(x * Game1.tileSize), y * Game1.tileSize)), new Rectangle?(this.AnimationManager.currentAnimation.sourceRectangle), this.basicItemInfo.DrawColor * alpha, 0f, Vector2.Zero, (float)Game1.pixelZoom, this.flipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None, Math.Max(0f, (float)((this.TileLocation.Y + addedDepth) * Game1.tileSize) / 10000f));
-                    try
-                    {
-                        this.AnimationManager.tickAnimation();
-                        // Log.AsyncC("Tick animation");
-                    }
-                    catch (Exception err)
-                    {
-                        ModCore.ModMonitor.Log(err.ToString());
-                    }
+                }
+
+                try
+                {
+                    this.AnimationManager.tickAnimation();
+                    // Log.AsyncC("Tick animation");
+                }
+                catch (Exception err)
+                {
+                    ModCore.ModMonitor.Log(err.ToString());
                 }
 
                 // spriteBatch.Draw(Game1.mouseCursors, Game1.GlobalToLocal(Game1.viewport, new Vector2((float)((double)tileLocation.X * (double)Game1.tileSize + (((double)tileLocation.X * 11.0 + (double)tileLocation.Y * 7.0) % 10.0 - 5.0)) + (float)(Game1.tileSize / 2), (float)((double)tileLocation.Y * (double)Game1.tileSize + (((double)tileLocation.Y * 11.0 + (double)tileLocation.X * 7.0) % 10.0 - 5.0)) + (float)(Game1.tileSize / 2))), new Rectangle?(new Rectangle((int)((double)tileLocation.X * 51.0 + (double)tileLocation.Y * 77.0) % 3 * 16, 128 + this.whichForageCrop * 16, 16, 16)), Color.White, 0.0f, new Vector2(8f, 8f), (float)Game1.pixelZoom, SpriteEffects.None, (float)(((double)tileLocation.Y * (double)Game1.tileSize + (double)(Game1.tileSize / 2) + (((double)tileLocation.Y * 11.0 + (double)tileLocation.X * 7.0) % 10.0 - 5.0)) / 10000.0));
             }
+        }
+
+        public override void drawPlacementBounds(SpriteBatch spriteBatch, GameLocation location)
+        {
+            base.drawPlacementBounds(spriteBatch, location);
         }
 
         /// <summary>Draw the game object at a non-tile spot. Aka like debris.</summary>
@@ -636,6 +781,8 @@ namespace Omegasis.Revitalize.Framework.World.Objects
                     return;
                 }
             }
+
+            ModCore.log("Pos is: " + new Vector2(xNonTile, yNonTile));
 
             //The actual planter box being drawn.
             if (this.AnimationManager == null)

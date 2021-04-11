@@ -39,13 +39,6 @@ namespace Omegasis.Revitalize.Framework.World.Objects.Machines.EnergyGeneration
             this.createStatusBubble();
         }
 
-        public override void updateWhenCurrentLocation(GameTime time, GameLocation environment)
-        {
-            base.updateWhenCurrentLocation(time, environment);
-
-            this.AnimationManager.prepareForNextUpdateTick();
-        }
-
 
         public override bool minutesElapsed(int minutes, GameLocation environment)
         {

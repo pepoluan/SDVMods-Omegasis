@@ -248,6 +248,10 @@ namespace Omegasis.Revitalize.Framework.World.Objects.Machines
 
         public override void draw(SpriteBatch spriteBatch, int x, int y, float alpha = 1f)
         {
+            if (x <= -1)
+            {
+                return;
+            }
 
             //The actual planter box being drawn.
             if (this.AnimationManager == null)
@@ -259,9 +263,10 @@ namespace Omegasis.Revitalize.Framework.World.Objects.Machines
             else
             {
                 //Log.AsyncC("Animation Manager is working!");
+
                 float addedDepth = 0;
-                this.AnimationManager.draw(spriteBatch, this.CurrentTextureToDisplay, Game1.GlobalToLocal(Game1.viewport, new Vector2((float)(x * Game1.tileSize), y * Game1.tileSize)), new Rectangle?(this.AnimationManager.currentAnimation.sourceRectangle), this.basicItemInfo.DrawColor * alpha, 0f, Vector2.Zero, (float)Game1.pixelZoom, this.flipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None, Math.Max(0f, (float)((y + addedDepth) * Game1.tileSize) / 10000f) + .00001f);
-                this.drawStatusBubble(spriteBatch, x, y, alpha);
+                this.AnimationManager.draw(spriteBatch, this.CurrentTextureToDisplay, Game1.GlobalToLocal(Game1.viewport, new Vector2((float)(this.TileLocation.X * Game1.tileSize), this.TileLocation.Y * Game1.tileSize)), new Rectangle?(this.AnimationManager.currentAnimation.sourceRectangle), this.basicItemInfo.DrawColor * alpha, 0f, Vector2.Zero, (float)Game1.pixelZoom, this.flipped ? SpriteEffects.FlipHorizontally : SpriteEffects.None, Math.Max(0f, (float)((this.TileLocation.Y + addedDepth) * Game1.tileSize) / 10000f) + .00001f);
+                this.drawStatusBubble(spriteBatch,(int) this.TileLocation.X, (int)this.TileLocation.Y-1, alpha);
 
                 try
                 {

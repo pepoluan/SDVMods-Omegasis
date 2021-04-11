@@ -202,7 +202,7 @@ namespace Omegasis.Revitalize.Framework.Objects
             this.AddItem("WaterPumpV1", waterPumpV1_0_0);
 
             
-            SteamBoiler steamBoilerV1_0_0 = new SteamBoiler( new BasicItemInformation("Steam Boiler", "Omegasis.Revitalize.Objects.Machines.SteamBoiler", "Burns coal and wood. Consumes water to produce steam which can be used in a steam generator.", "Machine", Color.SteelBlue, -300,-300, 0, false, 1000, true, true, TextureManager.GetTexture(ModCore.Manifest, "Machines", "SteamBoiler"), new AnimationManager(TextureManager.GetExtendedTexture(ModCore.Manifest, "Machines", "SteamBoiler"), new Animation(0, 0, 16, 16),new Dictionary<string, List<Animation>>()
+            SteamBoiler steamBoilerV1_0_0 = new SteamBoiler( new BasicItemInformation("Steam Boiler", "Omegasis.Revitalize.Objects.Machines.SteamBoiler", "Burns coal and wood. Consumes water to produce steam which can be used in a steam generator.", "Machine", Color.SteelBlue, -300,-300, 0, false, 1000, true, true, TextureManager.GetTexture(ModCore.Manifest, "Machines", "SteamBoiler"), new AnimationManager(TextureManager.GetExtendedTexture(ModCore.Manifest, "Machines", "SteamBoiler"), new Animation(0, 0, 32, 48),new Dictionary<string, List<Animation>>()
             {
                 {"Default",new List<Animation>(){
                     new Animation(0,0,32,48)
@@ -211,7 +211,7 @@ namespace Omegasis.Revitalize.Framework.Objects
                     new Animation(32,0,32,48)
                 } },
 
-            },"Default"), Color.White, true, new InventoryManager(9, 3, 3), null, null, false, null, null, new FluidManagerV2(4000, false, Enums.FluidInteractionType.Machine, false, false, 1)), null, 0, 0, "");
+            },"Default"), Color.White, false, new InventoryManager(9, 3, 3), null, null, false, null, null, new FluidManagerV2(4000, false, Enums.FluidInteractionType.Machine, false, false, 1)), null, 0, 0, "");
             this.AddItem("SteamBoilerV1", steamBoilerV1_0_0);
 
             SteamEngine steamEngineV1_0_0 = new SteamEngine(new BasicItemInformation("Steam Engine", "Omegasis.Revitalize.Objects.Machines.SteamEngine", "Consumes steam in order to produce power.", "Machine", Color.SteelBlue, -300,-300, 0, false, 500, true, true, TextureManager.GetTexture(ModCore.Manifest, "Machines", "SteamEngine"), new AnimationManager(TextureManager.GetExtendedTexture(ModCore.Manifest, "Machines", "SteamEngine"), new Animation(0, 0, 16, 16)), Color.White, false, new InventoryManager(9, 3, 3), null, new Energy.EnergyManager(500, Enums.EnergyInteractionType.Produces), false, null, null, new FluidManagerV2(2000, false, Enums.FluidInteractionType.Machine, false, true, 1)), null, ModCore.Configs.machinesConfig.steamEngineV1_powerGeneratedPerOperation, 0, "", ModCore.ObjectManager.resources.getFluid("Steam"), ModCore.Configs.machinesConfig.steamEngineV1_requiredSteamPerOperation);
