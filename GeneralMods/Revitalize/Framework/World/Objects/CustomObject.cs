@@ -15,12 +15,16 @@ using Revitalize.Framework.Objects;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Objects;
+using StardewValley.Tools;
 using StardustCore.Animations;
 
 namespace Omegasis.Revitalize.Framework.World.Objects
 {
     /// <summary>
     /// A base class that is to be extended by other implementations of objects.
+    ///
+    /// Clicking to remove and click place are bound to the samething. Need to find a way to change that.
+    /// Bounding boxes work, but not for clicking to remove. Why is that?
     /// </summary>
     [XmlType("Omegasis.Revitalize.Framework.World.Objects.CustomObject")]
     public class CustomObject:StardewValley.Objects.Furniture, ICommonObjectInterface, ILightManagerProvider, IBasicItemInfoProvider
@@ -63,9 +67,13 @@ namespace Omegasis.Revitalize.Framework.World.Objects
             this.basicItemInfo = new BasicItemInformation();
             this.furniture_type.Value = Furniture.other;
             this.bigCraftable.Value = true;
+            this.Type = "interactive";
+            this.name = this.Name;
+
 
             IReflectedField<int> placementRestriction = ModCore.ModHelper.Reflection.GetField<int>(this, "_placementRestriction");
             placementRestriction.SetValue(2);
+            this.Fragility = 0;
 
         }
 
@@ -74,9 +82,12 @@ namespace Omegasis.Revitalize.Framework.World.Objects
             this.basicItemInfo=basicItemInfo;
             this.bigCraftable.Value = true;
             this.furniture_type.Value = Furniture.other;
+            this.Type = "interactive";
+            this.name = this.Name;
 
             IReflectedField<int> placementRestriction= ModCore.ModHelper.Reflection.GetField<int>(this, "_placementRestriction");
             placementRestriction.SetValue(2);
+            this.Fragility = 0;
         }
 
         public CustomObject(BasicItemInformation basicItemInfo, int StackSize=1)
@@ -86,6 +97,9 @@ namespace Omegasis.Revitalize.Framework.World.Objects
             this.Stack = StackSize;
             this.bigCraftable.Value = true;
             this.furniture_type.Value = Furniture.other;
+            this.Type = "interactive";
+            this.name = this.Name;
+            this.Fragility = 0;
 
             IReflectedField<int> placementRestriction = ModCore.ModHelper.Reflection.GetField<int>(this, "_placementRestriction");
             placementRestriction.SetValue(2);
@@ -97,6 +111,9 @@ namespace Omegasis.Revitalize.Framework.World.Objects
             this.TileLocation = TileLocation;
             this.bigCraftable.Value = true;
             this.furniture_type.Value = Furniture.other;
+            this.Type = "interactive";
+            this.name = this.Name;
+            this.Fragility = 0;
 
             IReflectedField<int> placementRestriction = ModCore.ModHelper.Reflection.GetField<int>(this, "_placementRestriction");
             placementRestriction.SetValue(2);
@@ -108,6 +125,9 @@ namespace Omegasis.Revitalize.Framework.World.Objects
             this.Stack = StackSize;
             this.bigCraftable.Value = true;
             this.furniture_type.Value = Furniture.other;
+            this.Type = "interactive";
+            this.name = this.Name;
+            this.Fragility = 0;
 
             IReflectedField<int> placementRestriction = ModCore.ModHelper.Reflection.GetField<int>(this, "_placementRestriction");
             placementRestriction.SetValue(2);
@@ -200,15 +220,11 @@ namespace Omegasis.Revitalize.Framework.World.Objects
             MouseState mState = Mouse.GetState();
             KeyboardState keyboardState = Game1.GetKeyboardState();
 
-            if (mState.LeftButton == ButtonState.Pressed)
-            {
-                //ModCore.log("Right clicked!");
-                return this.clicked(who);
-            }
+            ModCore.log("Check for action");
 
             if (mState.RightButton == ButtonState.Pressed && keyboardState.IsKeyDown(Keys.LeftShift) == false && keyboardState.IsKeyDown(Keys.RightShift) == false)
             {
-                //ModCore.log("Right clicked!");
+                ModCore.log("Right clicked!");
                 return this.rightClicked(who);
             }
 
@@ -225,10 +241,18 @@ namespace Omegasis.Revitalize.Framework.World.Objects
 
         public override bool clicked(Farmer who)
         {
+            ModCore.log("Click the thing??");
+            if (Game1.player.isInventoryFull())
+            {
+                return false;
+            }
+            else
+            {
 
-            ModCore.log("CLICK THE WORLD!");
-            this.performRemoveAction(this.TileLocation, this.getCurrentLocation());
-            return base.clicked(who);
+                this.performRemoveAction(this.TileLocation, this.getCurrentLocation());
+                return true; //needs to be true to mark actually picking up the object? Also need to play sound?
+            }
+
         }
 
         public override void DayUpdate(GameLocation location)
@@ -315,7 +339,7 @@ namespace Omegasis.Revitalize.Framework.World.Objects
 
         public override bool isActionable(Farmer who)
         {
-            return base.isActionable(who);
+            return true;
         }
 
         public override bool isAnimalProduct()
@@ -404,7 +428,8 @@ namespace Omegasis.Revitalize.Framework.World.Objects
         /// <returns></returns>
         public override bool performObjectDropInAction(Item dropInItem, bool probe, Farmer who)
         {
-            return base.performObjectDropInAction(dropInItem, probe, who);
+            return false;
+            
         }
 
         /// <summary>
@@ -426,11 +451,11 @@ namespace Omegasis.Revitalize.Framework.World.Objects
             }
             this.RemoveLightGlow(environment);
 
-
             environment.objects.Remove(this.TileLocation);
             environment.furniture.Remove(this);
             this.TileLocation = Vector2.Zero;
             this.basicItemInfo.locationName = "";
+            this.boundingBox.Value = this.getBoundingBox(Vector2.Zero);
 
             this.sittingFarmers.Clear();
             this.removeAndAddToPlayersInventory();
@@ -447,7 +472,16 @@ namespace Omegasis.Revitalize.Framework.World.Objects
         /// <returns></returns>
         public override bool performToolAction(Tool t, GameLocation location)
         {
-            return base.performToolAction(t, location);
+            if (t == null)
+            {
+                ModCore.log("Null tool used! Probably just the player's hands then.");
+
+            }
+            else
+            {
+                ModCore.log("Player used tool: " +t.DisplayName);
+            }
+            return false;
         }
 
         /// <summary>
@@ -457,6 +491,7 @@ namespace Omegasis.Revitalize.Framework.World.Objects
         /// <returns></returns>
         public override bool performUseAction(GameLocation location)
         {
+            ModCore.log("Perform use action");
             return base.performUseAction(location);
         }
         public override bool placementAction(GameLocation location, int x, int y, Farmer who = null)
@@ -471,14 +506,11 @@ namespace Omegasis.Revitalize.Framework.World.Objects
                 return false;
             }
             base.boundingBox.Value = new Rectangle(x / 64 * 64, y / 64 * 64, base.boundingBox.Width, base.boundingBox.Height);
-            foreach (Furniture f in location.furniture)
-            {
-                if ((int)f.furniture_type == 11 && f.heldObject.Value == null && f.getBoundingBox(f.tileLocation).Intersects(base.boundingBox))
-                {
-                    f.performObjectDropInAction(this, probe: false, (who == null) ? Game1.player : who);
-                    return true;
-                }
-            }
+
+
+            //EXPERIMENTAL: UPDATe THIS IN THE CONSTRUCTOR
+            base.boundingBox.Value = new Rectangle(x / 64 * 64, y / 64 * 64, Game1.tileSize*1, Game1.tileSize * 2);
+
             this.updateDrawPosition();
 
 
@@ -767,6 +799,7 @@ namespace Omegasis.Revitalize.Framework.World.Objects
 
         public override void drawPlacementBounds(SpriteBatch spriteBatch, GameLocation location)
         {
+            //Need to update this????
             base.drawPlacementBounds(spriteBatch, location);
         }
 

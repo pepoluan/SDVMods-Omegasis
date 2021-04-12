@@ -212,7 +212,7 @@ namespace Omegasis.Revitalize.Framework.World.Objects.Machines
             */
             if (Game1.menuUp || Game1.currentMinigame != null) return false;
             this.createMachineMenu();
-            return true;
+            return false;
         }
 
         /// <summary>

@@ -7,6 +7,7 @@ using Omegasis.Revitalize.Framework;
 using Omegasis.Revitalize.Framework.Configs;
 using Omegasis.Revitalize.Framework.Environment;
 using Omegasis.Revitalize.Framework.Objects;
+using Omegasis.Revitalize.Framework.World.Objects;
 using Omegasis.Revitalize.Framework.World.Objects.Machines;
 using Revitalize.Framework;
 using Revitalize.Framework.Crafting;
@@ -18,9 +19,12 @@ using Revitalize.Framework.Player;
 using Revitalize.Framework.Utilities;
 using StardewModdingAPI;
 using StardewValley;
+using StardewValley.Objects;
+using StardewValley.Tools;
 using StardustCore.Animations;
 using StardustCore.UIUtilities;
 using StardustCore.UIUtilities.MenuComponents.ComponentsV2.Buttons;
+using xTile.Dimensions;
 using Animation = StardustCore.Animations.Animation;
 
 namespace Omegasis.Revitalize
@@ -257,26 +261,58 @@ namespace Omegasis.Revitalize
 
         private void Input_ButtonPressed1(object sender, StardewModdingAPI.Events.ButtonPressedEventArgs e)
         {
-            /*
+
+            
             if (e.Button == SButton.MouseLeft)
             {
                 if (Game1.player != null)
                 {
                     if (Game1.activeClickableMenu != null || Game1.eventUp || Game1.currentMinigame != null) return;
-                    if (Game1.player.ActiveObject is CustomObject)
+                    pressUseToolButtonCheckForCustomObjects();
+                }
+            }
+            
+        }
+
+        public static bool pressUseToolButtonCheckForCustomObjects()
+        {
+            Game1.player.toolPower = 0;
+            Game1.player.toolHold = 0;
+
+            //ModCore.log("Press the tool button!");
+            Vector2 c = Game1.player.GetToolLocation() / 64f;
+            c.X = (int)c.X;
+            c.Y = (int)c.Y;
+            Point p = new Point((int)(c.X*64f), (int)(c.Y*64f));
+
+            if (Game1.player.currentLocation.objects.ContainsKey(c))
+            {
+                //ModCore.log("Spot is taken: " + p.ToString());
+                //Only want to check spots that might not be covered by the game.
+                return false ;
+            }
+
+            foreach (Furniture f in Game1.player.currentLocation.furniture)
+            {
+                //ModCore.log("I see a furniture: " + f.DisplayName);
+                if(f is CustomObject)
+                {
+                    //ModCore.log("I see a custom furniture piece: " + f.DisplayName);
+                    if (f.boundingBox.Value.Contains(p))
                     {
-                        if ((Game1.player.ActiveObject as CustomObject).canBePlacedHere(Game1.player.currentLocation, Game1.currentCursorTile))
-                        {
-                            CustomObject o = (CustomObject)Game1.player.ActiveObject;
-                            o.placementAction(Game1.currentLocation, (int)Game1.currentCursorTile.X * Game1.tileSize, (int)Game1.currentCursorTile.Y * Game1.tileSize, Game1.player);
-                            //o.performObjectDropInAction(Game1.player.ActiveObject, true, Game1.player);
-                            Game1.player.reduceActiveItemByOne();
-                            playerInfo.justPlacedACustomObject = true;
-                        }
+                        //ModCore.log("Found an object at a non object spot position: " + p.ToString());
+                       // ModCore.log("The name is: " + f.DisplayName);
+                        f.performToolAction(Game1.player.CurrentTool, Game1.player.currentLocation);
+                        return true;
+                    }
+                    else
+                    {
+                        //ModCore.log("BB is: " + f.boundingBox.Value.ToString());
+                        //ModCore.log("Point is: " + p.ToString());
                     }
                 }
             }
-            */
+            return false;
         }
 
 
@@ -322,12 +358,12 @@ namespace Omegasis.Revitalize
             if (e.Button == SButton.U)
             {
                 CraftingMenuV1 craft = new CraftingMenuV1(100, 100, 600, 800, Color.White, Game1.player.Items.ToList());
-                craft.addInCraftingPageTab("Default", new AnimatedButton(new StardustCore.Animations.AnimatedSprite("Default Tab", new Vector2(100 + 48, 100 + 24 * 4), new AnimationManager(TextureManager.GetExtendedTexture(Manifest, "Menus", "MenuTabHorizontal"), new Animation(0, 0, 24, 24)), Color.White), new Rectangle(0, 0, 24, 24), 2f));
+                craft.addInCraftingPageTab("Default", new AnimatedButton(new StardustCore.Animations.AnimatedSprite("Default Tab", new Vector2(100 + 48, 100 + 24 * 4), new AnimationManager(TextureManager.GetExtendedTexture(Manifest, "Menus", "MenuTabHorizontal"), new Animation(0, 0, 24, 24)), Color.White), new Microsoft.Xna.Framework.Rectangle(0, 0, 24, 24), 2f));
                 craft.addInCraftingRecipe(new CraftingRecipeButton(new Recipe(new List<CraftingRecipeComponent>()
                 {
                     //Inputs here
                    new CraftingRecipeComponent(ObjectManager.GetItem("SteelIngot"),20)
-                }, new CraftingRecipeComponent(ObjectManager.GetItem("Anvil"), 1)), null, new Vector2(), new Rectangle(0, 0, 32, 32), 1f, false, Color.White), "Default");
+                }, new CraftingRecipeComponent(ObjectManager.GetItem("Anvil"), 1)), null, new Vector2(), new Microsoft.Xna.Framework.Rectangle(0, 0, 32, 32), 1f, false, Color.White), "Default");
                 craft.currentTab = "Default";
                 craft.sortRecipes();
                 Game1.activeClickableMenu = craft;

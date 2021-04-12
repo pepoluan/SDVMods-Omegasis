@@ -13,6 +13,7 @@ using StardustCore.UIUtilities.MenuComponents.ComponentsV2.Buttons;
 using Omegasis.Revitalize.Framework.World.Objects.Machines;
 using Omegasis.Revitalize.Framework.Energy;
 using Omegasis.Revitalize;
+using Microsoft.Xna.Framework.Input;
 
 namespace Revitalize.Framework.Menus.Machines
 {
@@ -204,6 +205,17 @@ namespace Revitalize.Framework.Menus.Machines
             else return "";
         }
 
+        public override void receiveKeyPress(Keys key)
+        {
+            if (key.Equals(Keys.Escape))
+            {
+                this.exitMenu();
+            }
+        }
+        public override bool shouldDrawCloseButton()
+        {
+            return true;
+        }
         /// <summary>
         /// Draws the menu to the screen.
         /// </summary>
@@ -305,7 +317,27 @@ namespace Revitalize.Framework.Menus.Machines
             };
             this.energyTexture.SetData<Color>(color);
         }
-        
-        
+
+        public override bool readyToClose()
+        {
+            return base.readyToClose();
+        }
+
+        public override void exitMenu(bool playSound = true)
+        {
+            base.exitMenu(playSound);
+        }
+
+        public override void update(GameTime time)
+        {
+            /*
+            if (this.readyToClose())
+            {
+                this.exitMenu();
+            }
+            */
+            base.update(time);
+        }
+
     }
 }
