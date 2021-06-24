@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 
 using System.Linq;
+using System.Threading;
 using ICSharpCode.SharpZipLib.Zip;
 using Omegasis.SaveBackup.Framework;
 using StardewModdingAPI;
@@ -39,8 +40,9 @@ namespace Omegasis.SaveBackup
         private static string AndroidNightlyBackupsPath => Path.Combine(SaveBackup.AndroidDataPath, "Backed_Up_Saves", Constants.SaveFolderName, "Nightly_InGame_Saves");
 
         /// <summary>The mod configuration.</summary>
-        private ModConfig Config;
+        private static ModConfig Config;
 
+        private static IMonitor ModMonitor;
 
         /*********
         ** Public methods
@@ -49,15 +51,16 @@ namespace Omegasis.SaveBackup
         /// <param name="helper">Provides simplified APIs for writing mods.</param>
         public override void Entry(IModHelper helper)
         {
-            this.Config = helper.ReadConfig<ModConfig>();
+            ModMonitor = this.Monitor;
+            Config = helper.ReadConfig<ModConfig>();
 
-            if (string.IsNullOrEmpty(this.Config.AlternatePreplaySaveBackupPath) == false)
+            if (string.IsNullOrEmpty(Config.AlternatePreplaySaveBackupPath) == false)
             {
-                this.BackupSaves(this.Config.AlternatePreplaySaveBackupPath);
+                this.BackupSaves(Config.AlternatePreplaySaveBackupPath, false);
             }
             else if(Constants.TargetPlatform != GamePlatform.Android)
             {
-                this.BackupSaves(SaveBackup.PrePlayBackupsPath);
+                this.BackupSaves(SaveBackup.PrePlayBackupsPath, false);
             }
 
             helper.Events.GameLoop.Saving += this.OnSaving;
@@ -72,9 +75,9 @@ namespace Omegasis.SaveBackup
         /// <param name="e">The event arguments.</param>
         private void OnSaving(object sender, SavingEventArgs e)
         {
-            if (string.IsNullOrEmpty(this.Config.AlternateNightlySaveBackupPath) == false)
+            if (string.IsNullOrEmpty(Config.AlternateNightlySaveBackupPath) == false)
             {
-                this.BackupSaves(this.Config.AlternateNightlySaveBackupPath);
+                this.BackupSaves(Config.AlternateNightlySaveBackupPath);
             }
             else if (Constants.TargetPlatform != GamePlatform.Android)
             {
@@ -90,36 +93,111 @@ namespace Omegasis.SaveBackup
             }
         }
 
+        public class BackgroundCopier
+            {
+            public ManualResetEvent DoneFlag;
+            public string SourceDir;
+            public string DestDir;
+            public bool Recurse = true;
+            public string Filter = null;
+            public int SaveCount = SaveBackup.Config.SaveCount;
+            public IMonitor Monitor = SaveBackup.ModMonitor;
+            public void Copy(object _) {
+                this.Monitor.Log($"Copying {this.SourceDir} to {this.DestDir} recursively");
+                DirectoryCopy(this.SourceDir, this.DestDir, true);
+                var parent_dest_dir = new DirectoryInfo(this.DestDir).Parent;
+                this.Monitor.Log($"Removing old dirs in {parent_dest_dir} ({this.SaveCount} to keep)");
+                parent_dest_dir
+                    .EnumerateDirectories()
+                    .OrderByDescending(f => f.CreationTime)
+                    .Skip(Config.SaveCount)
+                    .ToList()
+                    .ForEach(dir => dir.Delete(true));
+                this.DoneFlag.Set();
+                }
+            ~BackgroundCopier() {
+                this.Monitor.Log($"[{nameof(BackgroundCopier)}] Finalized");
+                }
+            }
+
+        /// <summary>
+        /// A class to encapsulate FastZip operation so it can take place in the background,
+        /// not blocking the main thread of the game.
+        /// </summary>
+        public class BackgroundZipper {
+            public ManualResetEvent WaitStart;
+            public string ZipDir;
+            public string ZipName;
+            public string SourceDir;
+            public bool Recurse = true;
+            public string Filter = null;
+            public int SaveCount = SaveBackup.Config.SaveCount;
+            public IMonitor Monitor = SaveBackup.ModMonitor;
+            public void CreateZip(object _) {
+                this.Monitor.Log($"Waiting for starting flag...");
+                this.WaitStart.WaitOne();
+                string zip_path = Path.Combine(this.ZipDir, this.ZipName);
+                this.Monitor.Log($"Creating zip file {zip_path} from {this.SourceDir}");
+                FastZip fastZip = new() { UseZip64 = UseZip64.Off };
+                fastZip.CreateZip(zip_path, this.SourceDir, this.Recurse, this.Filter);
+                // Delete the temporary directory
+                this.Monitor.Log($"Removing {this.SourceDir}");
+                new DirectoryInfo(this.SourceDir).Delete(true);
+                // Delete older files
+                var to_del = new DirectoryInfo(this.ZipDir)
+                    .EnumerateFiles()
+                    .OrderByDescending(f => f.CreationTime)
+                    .Skip(this.SaveCount)
+                    .ToList()
+                    ;
+                this.Monitor.Log($"Removing old zips in {this.ZipDir} ({this.SaveCount} to keep)");
+                foreach (var f in to_del) {
+                    this.Monitor.Log($"  deleting {f}");
+                    f.Delete();
+                    }
+                }
+            ~BackgroundZipper() {
+                this.Monitor.Log($"[{nameof(BackgroundZipper)}] Finalized");
+                }
+            }
+
         /// <summary>Back up saves to the specified folder.</summary>
         /// <param name="folderPath">The folder path in which to generate saves.</param>
-        private void BackupSaves(string folderPath)
+        /// <param name="waitForBackgroundCopier">Whether to wait for BackgroundCopier to finish before launching BackgroundZipper</param>
+        private void BackupSaves(string folderPath, bool waitForBackgroundCopier = true)
         {
-            if (this.Config.UseZipCompression == false)
-            {
+            this.Monitor.Log($"Backing up to {folderPath}");
 
-                DirectoryCopy(Constants.TargetPlatform != GamePlatform.Android ? SaveBackup.SavesPath : SaveBackup.AndroidCurrentSavePath, Path.Combine(folderPath, $"backup-{DateTime.Now:yyyyMMdd'-'HHmmss}"), true);
-                new DirectoryInfo(folderPath)
-                .EnumerateDirectories()
-                .OrderByDescending(f => f.CreationTime)
-                .Skip(this.Config.SaveCount)
-                .ToList()
-                .ForEach(dir => dir.Delete(true));
-            }
-            else
-            {
-                FastZip fastZip = new FastZip();
-                fastZip.UseZip64 = UseZip64.Off;
-                bool recurse = true;  // Include all files by recursing through the directory structure
-                string filter = null; // Dont filter any files at all
-                fastZip.CreateZip(Path.Combine(folderPath, $"backup-{DateTime.Now:yyyyMMdd'-'HHmmss}.zip"), Constants.TargetPlatform != GamePlatform.Android ? SaveBackup.SavesPath : SaveBackup.AndroidCurrentSavePath, recurse, filter);
-                new DirectoryInfo(folderPath)
-                .EnumerateFiles()
-                .OrderByDescending(f => f.CreationTime)
-                .Skip(this.Config.SaveCount)
-                .ToList()
-                .ForEach(file => file.Delete());
-            }
+            string dtstamp = $"{DateTime.Now:yyyyMMdd'-'HHmmss}";
+            string backup_path = Path.Combine(folderPath, $"backup-{dtstamp}");
+            string source = Constants.TargetPlatform != GamePlatform.Android ? SaveBackup.SavesPath : SaveBackup.AndroidCurrentSavePath;
 
+            ManualResetEvent CopierDone = new(false);
+
+            ModMonitor.Log($"Launching BackgroundCopier");
+            BackgroundCopier copier = new() {
+                DoneFlag = CopierDone,
+                SourceDir = source,
+                DestDir = backup_path
+                };
+            ThreadPool.QueueUserWorkItem(copier.Copy);
+
+            if (waitForBackgroundCopier) {
+                ModMonitor.Log("Waiting for BackgroundCopier to finish...");
+                CopierDone.WaitOne();
+                }
+
+            if (Config.UseZipCompression)
+            {
+                ModMonitor.Log($"Launching BackgroundZipper");
+                BackgroundZipper zipper = new() {
+                    WaitStart = CopierDone,
+                    ZipDir = folderPath,
+                    ZipName = $"backup-{dtstamp}.zip",
+                    SourceDir = backup_path
+                    };
+                ThreadPool.QueueUserWorkItem(zipper.CreateZip);
+            }
 
             /*
             // back up saves This used compression but it always causes a library loading issue for OS
