@@ -153,6 +153,7 @@ namespace Omegasis.SaveBackup
             // If the destination directory doesn't exist, create it.
             if (!Directory.Exists(destDirName))
             {
+                ModMonitor.Log($"Creating directory {destDirName}");
                 Directory.CreateDirectory(destDirName);
             }
 
