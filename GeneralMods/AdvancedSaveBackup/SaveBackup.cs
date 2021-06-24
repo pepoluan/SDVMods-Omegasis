@@ -175,15 +175,14 @@ namespace Omegasis.SaveBackup
             }
         }
 
-
-
-        ///<summary>
-        ///<see cref="https://github.com/Pathoschild/SMAPI/blob/develop/src/SMAPI.Mods.SaveBackup/ModEntry.cs"/>>
-        ///This code originated from Pathoschilds SMAPI SaveBackup Mod. All rights for this code goes to them. If this code is not allowed to be here *please* contact Omegasis to discus a proper work around.
-        /// Create a zip using a process command on MacOS.
+        /// <summary>
+        /// <para><see href="https://github.com/Pathoschild/SMAPI/blob/develop/src/SMAPI.Mods.SaveBackup/ModEntry.cs"/></para>
+        /// <para>This code originated from Pathoschilds SMAPI SaveBackup Mod. All rights for this code goes to them.
+        /// If this code is not allowed to be here *please* contact Omegasis to discus a proper work around.
+        /// Create a zip using a process command on MacOS.</para>
+        /// </summary>
         /// <param name="sourcePath">The file or directory path to zip.</param>
         /// <param name="destination">The destination file to create.</param>
-        /// </summary>
         private void CompressUsingMacProcess(string sourcePath, FileInfo destination)
         {
             DirectoryInfo saveFolder = new DirectoryInfo(sourcePath);
