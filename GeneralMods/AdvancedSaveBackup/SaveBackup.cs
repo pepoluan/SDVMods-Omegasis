@@ -103,10 +103,10 @@ namespace Omegasis.SaveBackup
             public int SaveCount = SaveBackup.Config.SaveCount;
             public IMonitor Monitor = SaveBackup.ModMonitor;
             public void Copy(object _) {
-                this.Monitor.Log($"Copying {this.SourceDir} to {this.DestDir} recursively");
+                this.Monitor.Log($"[{nameof(BackgroundCopier)}] Copying {this.SourceDir} to {this.DestDir} recursively");
                 DirectoryCopy(this.SourceDir, this.DestDir, true);
                 var parent_dest_dir = new DirectoryInfo(this.DestDir).Parent;
-                this.Monitor.Log($"Removing old dirs in {parent_dest_dir} ({this.SaveCount} to keep)");
+                this.Monitor.Log($"[{nameof(BackgroundCopier)}] Removing old dirs in {parent_dest_dir} ({this.SaveCount} to keep)");
                 parent_dest_dir
                     .EnumerateDirectories()
                     .OrderByDescending(f => f.CreationTime)
@@ -134,14 +134,14 @@ namespace Omegasis.SaveBackup
             public int SaveCount = SaveBackup.Config.SaveCount;
             public IMonitor Monitor = SaveBackup.ModMonitor;
             public void CreateZip(object _) {
-                this.Monitor.Log($"Waiting for starting flag...");
+                this.Monitor.Log($"[{nameof(BackgroundZipper)}] Waiting for starting flag...");
                 this.WaitStart.WaitOne();
                 string zip_path = Path.Combine(this.ZipDir, this.ZipName);
-                this.Monitor.Log($"Creating zip file {zip_path} from {this.SourceDir}");
+                this.Monitor.Log($"[{nameof(BackgroundZipper)}] Creating zip file {zip_path} from {this.SourceDir}");
                 FastZip fastZip = new() { UseZip64 = UseZip64.Off };
                 fastZip.CreateZip(zip_path, this.SourceDir, this.Recurse, this.Filter);
                 // Delete the temporary directory
-                this.Monitor.Log($"Removing {this.SourceDir}");
+                this.Monitor.Log($"[{nameof(BackgroundZipper)}] Removing {this.SourceDir}");
                 new DirectoryInfo(this.SourceDir).Delete(true);
                 // Delete older files
                 var to_del = new DirectoryInfo(this.ZipDir)
@@ -150,9 +150,9 @@ namespace Omegasis.SaveBackup
                     .Skip(this.SaveCount)
                     .ToList()
                     ;
-                this.Monitor.Log($"Removing old zips in {this.ZipDir} ({this.SaveCount} to keep)");
+                this.Monitor.Log($"[{nameof(BackgroundZipper)}] Removing old zips in {this.ZipDir} ({this.SaveCount} to keep)");
                 foreach (var f in to_del) {
-                    this.Monitor.Log($"  deleting {f}");
+                    this.Monitor.Log($"[{nameof(BackgroundZipper)}]   deleting {f}");
                     f.Delete();
                     }
                 }
@@ -185,6 +185,7 @@ namespace Omegasis.SaveBackup
             if (waitForBackgroundCopier) {
                 ModMonitor.Log("Waiting for BackgroundCopier to finish...");
                 CopierDone.WaitOne();
+                ModMonitor.Log("BackgroundCopier finished, continuing");
                 }
 
             if (Config.UseZipCompression)
